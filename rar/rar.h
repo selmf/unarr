@@ -4,22 +4,18 @@
 #ifndef rar_rar_h
 #define rar_rar_h
 
-#include "../common/unarr-imp.h"
+#include "../unarr-internals.h"
 
-#include "lzss.h"
-#include "../lzmasdk/Ppmd7.h"
+#include "../lzss.h"
+#include "../ppmd/Ppmd7.h"
 #include <limits.h>
-
-static inline size_t smin(size_t a, size_t b) { return a < b ? a : b; }
 
 typedef struct ar_archive_rar_s ar_archive_rar;
 
-/***** parse-rar *****/
-
-#define FILE_SIGNATURE_SIZE 7
+/***** parser *****/
 
 enum block_types {
-    TYPE_FILE_SIGNATURE = 0x72, TYPE_MAIN_HEADER = 0x73, TYPE_FILE_ENTRY = 0x74,
+    TYPE_MAGIC = 0x72, TYPE_MAIN_HEADER = 0x73, TYPE_FILE_ENTRY = 0x74,
     TYPE_NEWSUB = 0x7A, TYPE_END_OF_ARCHIVE = 0x7B,
 };
 
@@ -40,12 +36,6 @@ enum entry_flags {
     LHD_LONG_BLOCK = 1 << 15,
 };
 
-enum compression_method {
-    METHOD_STORE = 0x30,
-    METHOD_FASTEST = 0x31, METHOD_FAST = 0x32, METHOD_NORMAL = 0x33,
-    METHOD_GOOD = 0x34, METHOD_BEST = 0x35,
-};
-
 struct rar_header {
     uint16_t crc;
     uint8_t type;
@@ -58,28 +48,30 @@ struct rar_entry {
     uint64_t size;
     uint8_t os;
     uint32_t crc;
-    uint32_t dosdate;
+    uint32_t dostime;
     uint8_t version;
     uint8_t method;
     uint16_t namelen;
     uint32_t attrs;
+    bool solid;
 };
 
 struct ar_archive_rar_entry {
-    uint8_t version;
     uint8_t method;
     uint32_t crc;
     uint16_t header_size;
-    bool solid;
+    bool restart_solid;
     char *name;
+    WCHAR *name_w;
 };
 
 bool rar_parse_header(ar_archive *ar, struct rar_header *header);
 bool rar_check_header_crc(ar_archive *ar);
 bool rar_parse_header_entry(ar_archive_rar *rar, struct rar_header *header, struct rar_entry *entry);
 const char *rar_get_name(ar_archive *ar);
+const WCHAR *rar_get_name_w(ar_archive *ar);
 
-/***** filter-rar *****/
+/***** filters *****/
 
 struct RARVirtualMachine;
 struct RARProgramCode;
@@ -100,41 +92,38 @@ bool rar_parse_filter(ar_archive_rar *rar, const uint8_t *bytes, uint16_t length
 bool rar_run_filters(ar_archive_rar *rar);
 void rar_clear_filters(struct ar_archive_rar_filters *filters);
 
-/***** huffman-rar *****/
+/***** uncompress *****/
 
-struct huffman_code {
-    struct {
-        int branches[2];
-    } *tree;
-    int numentries;
-    int capacity;
-    int minlength;
-    int maxlength;
-    struct {
-        int length;
-        int value;
-    } *table;
-    int tablesize;
+enum compression_method {
+    METHOD_STORE = 0x30,
+    METHOD_FASTEST = 0x31, METHOD_FAST = 0x32, METHOD_NORMAL = 0x33,
+    METHOD_GOOD = 0x34, METHOD_BEST = 0x35,
 };
-
-bool rar_new_node(struct huffman_code *code);
-bool rar_add_value(struct huffman_code *code, int value, int codebits, int length);
-bool rar_create_code(struct huffman_code *code, uint8_t *lengths, int numsymbols);
-bool rar_make_table(struct huffman_code *code);
-void rar_free_code(struct huffman_code *code);
-
-static inline bool rar_is_leaf_node(struct huffman_code *code, int node) { return code->tree[node].branches[0] == code->tree[node].branches[1]; }
-
-/***** uncompress-rar *****/
-
-#define LZSS_WINDOW_SIZE   0x400000
-#define LZSS_OVERFLOW_SIZE 288
 
 #define MAINCODE_SIZE      299
 #define OFFSETCODE_SIZE    60
 #define LOWOFFSETCODE_SIZE 17
 #define LENGTHCODE_SIZE    28
 #define HUFFMAN_TABLE_SIZE MAINCODE_SIZE + OFFSETCODE_SIZE + LOWOFFSETCODE_SIZE + LENGTHCODE_SIZE
+
+struct huffman_tree_node {
+    int branches[2];
+};
+
+struct huffman_table_entry {
+    int length;
+    int value;
+};
+
+struct huffman_code {
+    struct huffman_tree_node *tree;
+    int numentries;
+    int capacity;
+    int minlength;
+    int maxlength;
+    int tablesize;
+    struct huffman_table_entry *table;
+};
 
 struct ByteReader {
     IByteIn super;
@@ -146,10 +135,17 @@ struct CPpmdRAR_RangeDec {
     UInt32 Range;
     UInt32 Code;
     UInt32 Low;
+    UInt32 Bottom;
     IByteIn *Stream;
 };
 
-struct ar_archive_rar_uncomp_v3 {
+struct ar_archive_rar_uncomp {
+    bool initialized;
+    bool start_new_table;
+
+    LZSS lzss;
+    uint32_t dict_size;
+    size_t bytes_ready;
     struct huffman_code maincode;
     struct huffman_code offsetcode;
     struct huffman_code lowoffsetcode;
@@ -162,59 +158,15 @@ struct ar_archive_rar_uncomp_v3 {
     uint32_t numlowoffsetrepeats;
 
     bool is_ppmd_block;
+    bool ppmd_valid;
     int ppmd_escape;
     CPpmd7 ppmd7_context;
     struct CPpmdRAR_RangeDec range_dec;
     struct ByteReader bytein;
 
     struct ar_archive_rar_filters filters;
-};
 
-#define MAINCODE_SIZE_20        298
-#define OFFSETCODE_SIZE_20      48
-#define LENGTHCODE_SIZE_20      28
-#define HUFFMAN_TABLE_SIZE_20   4 * 257
-
-struct AudioState {
-    int8_t weight[5];
-    int16_t delta[4];
-    int8_t lastdelta;
-    int error[11];
-    int count;
-    uint8_t lastbyte;
-};
-
-struct ar_archive_rar_uncomp_v2 {
-    struct huffman_code maincode;
-    struct huffman_code offsetcode;
-    struct huffman_code lengthcode;
-    struct huffman_code audiocode[4];
-    uint8_t lengthtable[HUFFMAN_TABLE_SIZE_20];
-    uint32_t lastoffset;
-    uint32_t lastlength;
-    uint32_t oldoffset[4];
-    uint32_t oldoffsetindex;
-
-    bool audioblock;
-    uint8_t channel;
-    uint8_t numchannels;
-    struct AudioState audiostate[4];
-    int8_t channeldelta;
-};
-
-struct ar_archive_rar_uncomp {
-    uint8_t version;
-
-    LZSS lzss;
-    size_t bytes_ready;
-    bool start_new_table;
-
-    union {
-        struct ar_archive_rar_uncomp_v3 v3;
-        struct ar_archive_rar_uncomp_v2 v2;
-    } state;
-
-    struct StreamBitReader {
+    struct {
         uint64_t bits;
         int available;
         bool at_eof;
@@ -224,7 +176,6 @@ struct ar_archive_rar_uncomp {
 bool rar_uncompress_part(ar_archive_rar *rar, void *buffer, size_t buffer_size);
 int64_t rar_expand(ar_archive_rar *rar, int64_t end);
 void rar_clear_uncompress(struct ar_archive_rar_uncomp *uncomp);
-static inline void br_clear_leftover_bits(struct ar_archive_rar_uncomp *uncomp) { uncomp->br.available &= ~0x07; }
 
 /***** rar *****/
 
@@ -234,19 +185,12 @@ struct ar_archive_rar_progress {
     uint32_t crc;
 };
 
-struct ar_archive_rar_solid {
-    size_t size_total;
-    bool part_done;
-    bool restart;
-};
-
 struct ar_archive_rar_s {
     ar_archive super;
     uint16_t archive_flags;
     struct ar_archive_rar_entry entry;
     struct ar_archive_rar_uncomp uncomp;
-    struct ar_archive_rar_progress progress;
-    struct ar_archive_rar_solid solid;
+    struct ar_archive_rar_progress progr;
 };
 
 #endif

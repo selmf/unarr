@@ -1,7 +1,7 @@
 /* Copyright 2014 the unarr project authors (see AUTHORS file).
    License: LGPLv3 */
 
-/* adapted from https://code.google.com/p/theunarchiver/source/browse/XADMaster/RARVirtualMachine.h */
+// adapted from https://code.google.com/p/theunarchiver/source/browse/XADMaster/RARVirtualMachine.h
 
 #ifndef rar_vm_h
 #define rar_vm_h
@@ -30,12 +30,13 @@ typedef struct RARVirtualMachine RARVirtualMachine;
 
 struct RARVirtualMachine {
     uint32_t registers[8];
+    uint32_t flags;
     uint8_t memory[RARProgramMemorySize + sizeof(uint32_t) /* overflow sentinel */];
 };
 
 typedef struct RARProgram_s RARProgram;
 
-/* Program building */
+// Program building
 
 enum {
     RARMovInstruction = 0,
@@ -87,19 +88,11 @@ bool RARProgramAddInstr(RARProgram *prog, uint8_t instruction, bool bytemode);
 bool RARSetLastInstrOperands(RARProgram *prog, uint8_t addressingmode1, uint32_t value1, uint8_t addressingmode2, uint32_t value2);
 bool RARIsProgramTerminated(RARProgram *prog);
 
-/* Execution */
+// Execution
 
 bool RARExecuteProgram(RARVirtualMachine *vm, RARProgram *prog);
 
-/* Memory and register access (convenience) */
-
-void RARSetVirtualMachineRegisters(RARVirtualMachine *vm, uint32_t registers[8]);
-uint32_t RARVirtualMachineRead32(RARVirtualMachine *vm, uint32_t address);
-void RARVirtualMachineWrite32(RARVirtualMachine *vm, uint32_t address, uint32_t val);
-uint8_t RARVirtualMachineRead8(RARVirtualMachine *vm, uint32_t address);
-void RARVirtualMachineWrite8(RARVirtualMachine *vm, uint32_t address, uint8_t val);
-
-/* Instruction properties */
+// Instruction properties
 
 int NumberOfRARInstructionOperands(uint8_t instruction);
 bool RARInstructionHasByteMode(uint8_t instruction);
@@ -108,10 +101,12 @@ bool RARInstructionIsRelativeJump(uint8_t instruction);
 bool RARInstructionWritesFirstOperand(uint8_t instruction);
 bool RARInstructionWritesSecondOperand(uint8_t instruction);
 
-/* Program debugging */
+// Memory and register access (convenience)
 
-#ifndef NDEBUG
-void RARPrintProgram(RARProgram *prog);
-#endif
+void RARSetVirtualMachineRegisters(RARVirtualMachine *vm, uint32_t registers[8]);
+uint32_t RARVirtualMachineRead32(RARVirtualMachine *vm, uint32_t address);
+void RARVirtualMachineWrite32(RARVirtualMachine *vm, uint32_t address, uint32_t val);
+uint8_t RARVirtualMachineRead8(RARVirtualMachine *vm, uint32_t address);
+void RARVirtualMachineWrite8(RARVirtualMachine *vm, uint32_t address, uint8_t val);
 
 #endif

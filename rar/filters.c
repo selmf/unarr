@@ -2,10 +2,9 @@
    License: LGPLv3 */
 
 #include "rar.h"
-#include "rarvm.h"
+#include "vm.h"
 
-/* adapted from https://code.google.com/p/theunarchiver/source/browse/XADMaster/XADRARVirtualMachine.m */
-/* adapted from https://code.google.com/p/theunarchiver/source/browse/XADMaster/XADRAR30Filter.m */
+// adapted from https://code.google.com/p/theunarchiver/source/browse/XADMaster/XADRARVirtualMachine.m
 
 struct MemBitReader {
     const uint8_t *bytes;
@@ -34,7 +33,7 @@ struct RARFilter {
     uint8_t *globaldata;
     uint32_t globaldatalen;
     size_t blockstartpos;
-    uint32_t blocklength;
+    size_t blocklength;
     uint32_t filteredblockaddress;
     uint32_t filteredblocklength;
     struct RARFilter *next;
@@ -129,9 +128,9 @@ static bool rar_parse_operand(struct MemBitReader *br, uint8_t instruction, bool
         else
             *value = br_bits(br, 8);
         if (instrcount != (uint32_t)-1 && RARInstructionIsRelativeJump(instruction)) {
-            if (*value >= 256) /* absolute address */
+            if (*value >= 256) // absolute address
                 *value -= 256;
-            else { /* relative address */
+            else { // relative address
                 if (*value >= 136)
                     *value -= 264;
                 else if (*value >= 16)
@@ -171,6 +170,8 @@ static struct RARProgramCode *rar_compile_program(const uint8_t *bytes, size_t l
         rar_delete_program(prog);
         return NULL;
     }
+    // XADRARVirtualMachine calculates a fingerprint so that known,
+    // often used programs can be run natively instead of in the VM
     prog->fingerprint = ar_crc32(0, bytes, length) | ((uint64_t)length << 32);
 
     if (br_bits(&br, 1)) {
@@ -235,7 +236,7 @@ static bool rar_execute_filter_prog(struct RARFilter *filter, RARVirtualMachine 
             staticlength = RARProgramUserGlobalSize - globallength;
         memcpy(&vm->memory[RARProgramUserGlobalAddress], filter->prog->staticdata, staticlength);
     }
-    RARSetVirtualMachineRegisters(vm, filter->initialregisters);
+    memcpy(vm->registers, filter->initialregisters, sizeof(vm->registers));
 
     if (!RARExecuteProgram(vm, filter->prog->prog)) {
         warn("Error while executing program in RAR VM");
@@ -247,15 +248,12 @@ static bool rar_execute_filter_prog(struct RARFilter *filter, RARVirtualMachine 
         newgloballength = RARProgramUserGlobalSize;
     if (newgloballength > 0) {
         uint32_t newglobaldatalength = RARProgramSystemGlobalSize + newgloballength;
-        if (newglobaldatalength > filter->globaldatalen) {
-            uint8_t *newglobaldata = malloc(newglobaldatalength);
-            if (!newglobaldata)
-                return false;
-            free(filter->globaldata);
-            filter->globaldata = newglobaldata;
-        }
+        uint8_t *newglobaldata = realloc(filter->globaldata, newglobaldatalength);
+        if (!newglobaldata)
+            return false;
+        memcpy(newglobaldata, &vm->memory[RARProgramSystemGlobalAddress], newglobaldatalength);
+        filter->globaldata = newglobaldata;
         filter->globaldatalen = newglobaldatalength;
-        memcpy(filter->globaldata, &vm->memory[RARProgramSystemGlobalAddress], filter->globaldatalen);
     }
     else
         filter->globaldatalen = 0;
@@ -263,7 +261,7 @@ static bool rar_execute_filter_prog(struct RARFilter *filter, RARVirtualMachine 
     return true;
 }
 
-static struct RARFilter *rar_create_filter(struct RARProgramCode *prog, const uint8_t *globaldata, uint32_t globaldatalen, uint32_t registers[8], size_t startpos, uint32_t length)
+static struct RARFilter *rar_create_filter(struct RARProgramCode *prog, const uint8_t *globaldata, size_t globaldatalen, uint32_t registers[8], size_t startpos, size_t length)
 {
     struct RARFilter *filter;
 
@@ -272,11 +270,11 @@ static struct RARFilter *rar_create_filter(struct RARProgramCode *prog, const ui
         return NULL;
     filter->prog = prog;
     filter->globaldatalen = globaldatalen > RARProgramSystemGlobalSize ? globaldatalen : RARProgramSystemGlobalSize;
-    filter->globaldata = calloc(1, filter->globaldatalen);
+    filter->globaldata = malloc(filter->globaldatalen);
     if (!filter->globaldata)
         return NULL;
     if (globaldata)
-        memcpy(filter->globaldata, globaldata, globaldatalen);
+        memcpy(filter->globaldata, globaldata, filter->globaldatalen);
     if (registers)
         memcpy(filter->initialregisters, registers, sizeof(filter->initialregisters));
     filter->blockstartpos = startpos;
@@ -295,149 +293,26 @@ static void rar_delete_filter(struct RARFilter *filter)
     }
 }
 
-static bool rar_execute_filter_delta(struct RARFilter *filter, RARVirtualMachine *vm)
+static bool rar_execute_filter_delta(struct RARFilter *filter, RARVirtualMachine *vm, size_t pos)
 {
     uint32_t length = filter->initialregisters[4];
     uint32_t numchannels = filter->initialregisters[0];
-    uint8_t *src, *dst;
+    uint8_t *src, *dest;
     uint32_t i, idx;
 
     if (length > RARProgramWorkSize / 2)
         return false;
 
+    filter->filteredblockaddress = length;
+    filter->filteredblocklength = length;
+
     src = &vm->memory[0];
-    dst = &vm->memory[length];
+    dest = &vm->memory[filter->filteredblockaddress];
     for (i = 0; i < numchannels; i++) {
         uint8_t lastbyte = 0;
         for (idx = i; idx < length; idx += numchannels)
-            lastbyte = dst[idx] = lastbyte - *src++;
+            lastbyte = dest[idx] = lastbyte - *src++;
     }
-
-    filter->filteredblockaddress = length;
-    filter->filteredblocklength = length;
-
-    return true;
-}
-
-static bool rar_execute_filter_e8(struct RARFilter *filter, RARVirtualMachine *vm, size_t pos, bool e9also)
-{
-    uint32_t length = filter->initialregisters[4];
-    uint32_t filesize = 0x1000000;
-    uint32_t i;
-
-    if (length > RARProgramWorkSize || length < 4)
-        return false;
-
-    for (i = 0; i <= length - 5; i++) {
-        if (vm->memory[i] == 0xE8 || (e9also && vm->memory[i] == 0xE9)) {
-            uint32_t currpos = (uint32_t)pos + i + 1;
-            int32_t address = (int32_t)RARVirtualMachineRead32(vm, i + 1);
-            if (address < 0 && currpos >= (uint32_t)-address)
-                RARVirtualMachineWrite32(vm, i + 1, address + filesize);
-            else if (address >= 0 && (uint32_t)address < filesize)
-                RARVirtualMachineWrite32(vm, i + 1, address - currpos);
-            i += 4;
-        }
-    }
-
-    filter->filteredblockaddress = 0;
-    filter->filteredblocklength = length;
-
-    return true;
-}
-
-static bool rar_execute_filter_rgb(struct RARFilter *filter, RARVirtualMachine *vm)
-{
-    uint32_t stride = filter->initialregisters[0];
-    uint32_t byteoffset = filter->initialregisters[1];
-    uint32_t blocklength = filter->initialregisters[4];
-    uint8_t *src, *dst;
-    uint32_t i, j;
-
-    if (blocklength > RARProgramWorkSize / 2 || stride > blocklength)
-        return false;
-
-    src = &vm->memory[0];
-    dst = &vm->memory[blocklength];
-    for (i = 0; i < 3; i++) {
-        uint8_t byte = 0;
-        uint8_t *prev = dst + i - stride;
-        for (j = i; j < blocklength; j += 3) {
-            if (prev >= dst) {
-                uint32_t delta1 = abs(prev[3] - prev[0]);
-                uint32_t delta2 = abs(byte - prev[0]);
-                uint32_t delta3 = abs(prev[3] - prev[0] + byte - prev[0]);
-                if (delta1 > delta2 || delta1 > delta3)
-                    byte = delta2 <= delta3 ? prev[3] : prev[0];
-            }
-            byte -= *src++;
-            dst[j] = byte;
-            prev += 3;
-        }
-    }
-    for (i = byteoffset; i < blocklength - 2; i += 3) {
-        dst[i] += dst[i + 1];
-        dst[i + 2] += dst[i + 1];
-    }
-
-    filter->filteredblockaddress = blocklength;
-    filter->filteredblocklength = blocklength;
-
-    return true;
-}
-
-static bool rar_execute_filter_audio(struct RARFilter *filter, RARVirtualMachine *vm)
-{
-    uint32_t length = filter->initialregisters[4];
-    uint32_t numchannels = filter->initialregisters[0];
-    uint8_t *src, *dst;
-    uint32_t i, j;
-
-    if (length > RARProgramWorkSize / 2)
-        return false;
-
-    src = &vm->memory[0];
-    dst = &vm->memory[length];
-    for (i = 0; i < numchannels; i++) {
-        struct AudioState state;
-        memset(&state, 0, sizeof(state));
-        for (j = i; j < length; j += numchannels) {
-            int8_t delta = (int8_t)*src++;
-            uint8_t predbyte, byte;
-            int prederror;
-            state.delta[2] = state.delta[1];
-            state.delta[1] = state.lastdelta - state.delta[0];
-            state.delta[0] = state.lastdelta;
-            predbyte = ((8 * state.lastbyte + state.weight[0] * state.delta[0] + state.weight[1] * state.delta[1] + state.weight[2] * state.delta[2]) >> 3) & 0xFF;
-            byte = (predbyte - delta) & 0xFF;
-            prederror = delta << 3;
-            state.error[0] += abs(prederror);
-            state.error[1] += abs(prederror - state.delta[0]); state.error[2] += abs(prederror + state.delta[0]);
-            state.error[3] += abs(prederror - state.delta[1]); state.error[4] += abs(prederror + state.delta[1]);
-            state.error[5] += abs(prederror - state.delta[2]); state.error[6] += abs(prederror + state.delta[2]);
-            state.lastdelta = (int8_t)(byte - state.lastbyte);
-            dst[j] = state.lastbyte = byte;
-            if (!(state.count++ & 0x1F)) {
-                uint8_t k, idx = 0;
-                for (k = 1; k < 7; k++) {
-                    if (state.error[k] < state.error[idx])
-                        idx = k;
-                }
-                memset(state.error, 0, sizeof(state.error));
-                switch (idx) {
-                case 1: if (state.weight[0] >= -16) state.weight[0]--; break;
-                case 2: if (state.weight[0] < 16) state.weight[0]++; break;
-                case 3: if (state.weight[1] >= -16) state.weight[1]--; break;
-                case 4: if (state.weight[1] < 16) state.weight[1]++; break;
-                case 5: if (state.weight[2] >= -16) state.weight[2]--; break;
-                case 6: if (state.weight[2] < 16) state.weight[2]++; break;
-                }
-            }
-        }
-    }
-
-    filter->filteredblockaddress = length;
-    filter->filteredblocklength = length;
 
     return true;
 }
@@ -445,35 +320,23 @@ static bool rar_execute_filter_audio(struct RARFilter *filter, RARVirtualMachine
 static bool rar_execute_filter(struct RARFilter *filter, RARVirtualMachine *vm, size_t pos)
 {
     if (filter->prog->fingerprint == 0x1D0E06077D)
-        return rar_execute_filter_delta(filter, vm);
-    if (filter->prog->fingerprint == 0x35AD576887)
-        return rar_execute_filter_e8(filter, vm, pos, false);
-    if (filter->prog->fingerprint == 0x393CD7E57E)
-        return rar_execute_filter_e8(filter, vm, pos, true);
-    if (filter->prog->fingerprint == 0x951C2C5DC8)
-        return rar_execute_filter_rgb(filter, vm);
-    if (filter->prog->fingerprint == 0xD8BC85E701)
-        return rar_execute_filter_audio(filter, vm);
-    log("Unknown parsing filter 0x%x%08x", (uint32_t)(filter->prog->fingerprint >> 32), (uint32_t)filter->prog->fingerprint);
+        return rar_execute_filter_delta(filter, vm, pos);
 
-    /* XADRAR30Filter.m @executeOnVirtualMachine claims that this is required */
+    // TODO: XADRAR30Filter.m @executeOnVirtualMachine claims that this is required
     if (filter->prog->globalbackuplen > RARProgramSystemGlobalSize) {
         uint8_t *newglobaldata = malloc(filter->prog->globalbackuplen);
         if (newglobaldata) {
             free(filter->globaldata);
             filter->globaldata = newglobaldata;
             filter->globaldatalen = filter->prog->globalbackuplen;
-            memcpy(filter->globaldata, filter->prog->globalbackup, filter->prog->globalbackuplen);
         }
     }
 
     filter->initialregisters[6] = (uint32_t)pos;
     bw_write32le(&filter->globaldata[0x24], (uint32_t)pos);
     bw_write32le(&filter->globaldata[0x28], (uint32_t)((uint64_t)pos >> 32));
-
     if (!rar_execute_filter_prog(filter, vm))
         return false;
-
     filter->filteredblockaddress = RARVirtualMachineRead32(vm, RARProgramSystemGlobalAddress + 0x20) & RARProgramMemoryMask;
     filter->filteredblocklength = RARVirtualMachineRead32(vm, RARProgramSystemGlobalAddress + 0x1C) & RARProgramMemoryMask;
     if (filter->filteredblockaddress + filter->filteredblocklength >= RARProgramMemorySize) {
@@ -487,7 +350,6 @@ static bool rar_execute_filter(struct RARFilter *filter, RARVirtualMachine *vm, 
             free(filter->prog->globalbackup);
             filter->prog->globalbackup = newglobalbackup;
             filter->prog->globalbackuplen = filter->globaldatalen;
-            memcpy(filter->prog->globalbackup, filter->globaldata, filter->globaldatalen);
         }
     }
     else
@@ -498,7 +360,7 @@ static bool rar_execute_filter(struct RARFilter *filter, RARVirtualMachine *vm, 
 
 bool rar_parse_filter(ar_archive_rar *rar, const uint8_t *bytes, uint16_t length, uint8_t flags)
 {
-    struct ar_archive_rar_uncomp_v3 *uncomp = &rar->uncomp.state.v3;
+    struct ar_archive_rar_uncomp *uncomp = &rar->uncomp;
     struct ar_archive_rar_filters *filters = &uncomp->filters;
 
     struct MemBitReader br = { 0 };
@@ -510,6 +372,12 @@ bool rar_parse_filter(ar_archive_rar *rar, const uint8_t *bytes, uint16_t length
     size_t blockstartpos;
     uint32_t registers[8] = { 0 };
     uint32_t i;
+
+    if (!filters->vm) {
+        filters->vm = calloc(1, sizeof(*filters->vm));
+        if (!filters->vm)
+            return false;
+    }
 
     br.bytes = bytes;
     br.length = length;
@@ -543,7 +411,7 @@ bool rar_parse_filter(ar_archive_rar *rar, const uint8_t *bytes, uint16_t length
     if (prog)
         prog->usagecount++;
 
-    blockstartpos = br_next_rarvm_number(&br) + (size_t)lzss_position(&rar->uncomp.lzss);
+    blockstartpos = br_next_rarvm_number(&br) + (size_t)lzss_position(&uncomp->lzss);
     if ((flags & 0x40))
         blockstartpos += 258;
     if ((flags & 0x20))
@@ -636,28 +504,24 @@ bool rar_parse_filter(ar_archive_rar *rar, const uint8_t *bytes, uint16_t length
 
 bool rar_run_filters(ar_archive_rar *rar)
 {
-    struct ar_archive_rar_filters *filters = &rar->uncomp.state.v3.filters;
+    struct ar_archive_rar_uncomp *uncomp = &rar->uncomp;
+    struct ar_archive_rar_filters *filters = &uncomp->filters;
     struct RARFilter *filter = filters->stack;
     size_t start = filters->filterstart;
-    size_t end = start + filter->blocklength;
+    int64_t end = start + filter->blocklength;
+    int64_t actualend;
     uint32_t lastfilteraddress;
     uint32_t lastfilterlength;
 
     filters->filterstart = SIZE_MAX;
-    end = (size_t)rar_expand(rar, end);
-    if (end != start + filter->blocklength) {
+    actualend = rar_expand(rar, end);
+    if (end != actualend) {
         warn("Failed to expand the expected amout of bytes");
         return false;
     }
 
-    if (!filters->vm) {
-        filters->vm = calloc(1, sizeof(*filters->vm));
-        if (!filters->vm)
-            return false;
-    }
-
-    lzss_copy_bytes_from_window(&rar->uncomp.lzss, filters->vm->memory, start, filter->blocklength);
-    if (!rar_execute_filter(filter, filters->vm, rar->progress.bytes_done)) {
+    lzss_copy_bytes_from_window(&uncomp->lzss, filters->vm->memory, start, filter->blocklength);
+    if (!rar_execute_filter(filter, filters->vm, rar->progr.bytes_done)) {
         warn("Failed to execute parsing filter");
         return false;
     }
@@ -670,7 +534,7 @@ bool rar_run_filters(ar_archive_rar *rar)
 
     while ((filter = filters->stack) != NULL && filter->blockstartpos == filters->filterstart && filter->blocklength == lastfilterlength) {
         memmove(&filters->vm->memory[0], &filters->vm->memory[lastfilteraddress], lastfilterlength);
-        if (!rar_execute_filter(filter, filters->vm, rar->progress.bytes_done)) {
+        if (!rar_execute_filter(filter, filters->vm, rar->progr.bytes_done)) {
             warn("Failed to execute parsing filter");
             return false;
         }
@@ -690,7 +554,7 @@ bool rar_run_filters(ar_archive_rar *rar)
         filters->filterstart = filters->stack->blockstartpos;
     }
 
-    filters->lastend = end;
+    filters->lastend = (size_t)end;
     filters->bytes = &filters->vm->memory[lastfilteraddress];
     filters->bytes_ready = lastfilterlength;
 
