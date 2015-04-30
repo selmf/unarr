@@ -50,7 +50,6 @@ set (SOURCES	rar/uncompress-rar.c
 			zip/uncompress-zip.c
 			tar/tar.c
 			tar/parse-tar.c
-			main.c
 			lzmasdk/Ppmd7.c
 			lzmasdk/Ppmd8.c
 			lzmasdk/CpuArch.c
