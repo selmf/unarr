@@ -13,7 +13,7 @@ endif()
 
 find_package(ZLIB)
 find_package(BZip2)
-find_package(Threads)
+#find_package(Threads)
 
 if (UNIX OR MINGW)
     add_compile_options(-std=c99 -fomit-frame-pointer)
@@ -64,13 +64,13 @@ set (SOURCES	rar/uncompress-rar.c
 			)
 
 add_library(unarr SHARED unarr.h ${HEADERS} ${SOURCES})
-if (UNIX)
-    target_link_libraries(unarr m)
-endif (UNIX)
+#if (UNIX)
+#    target_link_libraries(unarr m)
+#endif (UNIX)
 
-if (Threads_FOUND)
-    target_link_libraries(unarr ${CMAKE_THREAD_LIBS_INIT})
-endif (Threads_FOUND)
+#if (Threads_FOUND)
+#    target_link_libraries(unarr ${CMAKE_THREAD_LIBS_INIT})
+#endif (Threads_FOUND)
 
 if (ZLIB_FOUND)
     include_directories(${ZLIB_INCLUDE_DIRS})
