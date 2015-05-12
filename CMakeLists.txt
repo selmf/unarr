@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(unarr)
 
-set (CMAKE_POSITION_INDEPENDENT_CODE ON)
+#set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 #set build type to default if unset
 if( NOT CMAKE_BUILD_TYPE )
