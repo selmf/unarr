@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(unarr)
+project(unarr C)
 
 #set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -64,6 +64,8 @@ set (SOURCES	rar/uncompress-rar.c
 			)
 
 add_library(unarr SHARED unarr.h ${HEADERS} ${SOURCES})
+add_library(unarr_static STATIC unarr.h ${HEADERS} ${SOURCES})
+set_target_properties(unarr_static PROPERTIES OUTPUT_NAME unarr)
 #if (UNIX)
 #    target_link_libraries(unarr m)
 #endif (UNIX)
@@ -75,14 +77,17 @@ add_library(unarr SHARED unarr.h ${HEADERS} ${SOURCES})
 if (ZLIB_FOUND)
     include_directories(${ZLIB_INCLUDE_DIRS})
     target_link_libraries(unarr ${ZLIB_LIBRARIES})
+    target_link_libraries(unarr_static ${ZLIB_LIBRARIES})
     add_definitions(-DHAVE_ZLIB)
 endif(ZLIB_FOUND)
 
 if (BZIP2_FOUND)
     include_directories(${BZIP_INCLUDE_DIRS})
     target_link_libraries (unarr ${BZIP2_LIBRARIES})
+    target_link_libraries (unarr_static ${BZIP2_LIBRARIES})
     add_definitions(-DHAVE_BZIP2)
 endif (BZIP2_FOUND)
 
 install(TARGETS unarr DESTINATION lib)
+install(TARGETS unarr_static DESTINATION lib)
 install(FILES unarr.h DESTINATION include)
