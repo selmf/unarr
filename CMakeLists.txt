@@ -30,8 +30,9 @@ set (HEADERS 	common/allocator.h
 			lzmasdk/Ppmd7.h
 			lzmasdk/CpuArch.h
 			lzmasdk/Ppmd.h
-			lzmasdk/Types.h
+			lzmasdk/7zTypes.h
 			lzmasdk/Ppmd8.h
+			lzmasdk/Precomp.h
 			_7z/_7z.h
 			zip/zip.h
 			zip/inflate.h
@@ -65,7 +66,8 @@ set (SOURCES	rar/uncompress-rar.c
 
 add_library(unarr SHARED unarr.h ${HEADERS} ${SOURCES})
 add_library(unarr_static STATIC unarr.h ${HEADERS} ${SOURCES})
-set_target_properties(unarr_static PROPERTIES OUTPUT_NAME unarr)
+set_target_properties(unarr PROPERTIES SOVERSION 1)
+set_target_properties(unarr_static PROPERTIES OUTPUT_NAME unarr SOVERSION 1)
 #if (UNIX)
 #    target_link_libraries(unarr m)
 #endif (UNIX)
