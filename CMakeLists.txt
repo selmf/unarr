@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 2.6)
 project(unarr C)
 
-#set (CMAKE_POSITION_INDEPENDENT_CODE ON)
+#Set up api and release version for later use.
+#Increase in major api version indicates api
+#breakage!! For non-breaking changes, use
+#minor api version instead.
+set (UNARR_API_VERSION_MAJOR 1)
+set (UNARR_API_VERSION_MINOR 0)
 
 #set build type to default if unset
 if( NOT CMAKE_BUILD_TYPE )
@@ -13,13 +18,12 @@ endif()
 
 find_package(ZLIB)
 find_package(BZip2)
-#find_package(Threads)
 
 if (UNIX OR MINGW)
     add_compile_options(-std=c99 -fomit-frame-pointer)
 endif (UNIX OR MINGW)
 
-include_directories(common rar tar zip _7z)
+#sources
 
 set (HEADERS 	common/allocator.h
 			common/unarr-imp.h
@@ -64,17 +68,14 @@ set (SOURCES	rar/uncompress-rar.c
 			common/crc32.c
 			)
 
+#build targets
+
 add_library(unarr SHARED unarr.h ${HEADERS} ${SOURCES})
 add_library(unarr_static STATIC unarr.h ${HEADERS} ${SOURCES})
-set_target_properties(unarr PROPERTIES SOVERSION 1)
-set_target_properties(unarr_static PROPERTIES OUTPUT_NAME unarr SOVERSION 1)
-#if (UNIX)
-#    target_link_libraries(unarr m)
-#endif (UNIX)
+set_target_properties(unarr PROPERTIES SOVERSION ${UNARR_API_VERSION_MAJOR}.${UNARR_API_VERSION_MINOR})
+set_target_properties(unarr_static PROPERTIES OUTPUT_NAME unarr SOVERSION ${UNARR_API_VERSION_MAJOR}.${UNARR_API_VERSION_MINOR})
 
-#if (Threads_FOUND)
-#    target_link_libraries(unarr ${CMAKE_THREAD_LIBS_INIT})
-#endif (Threads_FOUND)
+#library detection macros
 
 if (ZLIB_FOUND)
     include_directories(${ZLIB_INCLUDE_DIRS})
@@ -89,6 +90,8 @@ if (BZIP2_FOUND)
     target_link_libraries (unarr_static ${BZIP2_LIBRARIES})
     add_definitions(-DHAVE_BZIP2)
 endif (BZIP2_FOUND)
+
+#make install targets
 
 install(TARGETS unarr DESTINATION lib)
 install(TARGETS unarr_static DESTINATION lib)
