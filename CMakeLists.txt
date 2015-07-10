@@ -72,8 +72,8 @@ set (SOURCES	rar/uncompress-rar.c
 
 add_library(unarr SHARED unarr.h ${HEADERS} ${SOURCES})
 add_library(unarr_static STATIC unarr.h ${HEADERS} ${SOURCES})
-set_target_properties(unarr PROPERTIES SOVERSION ${UNARR_API_VERSION_MAJOR}.${UNARR_API_VERSION_MINOR})
-set_target_properties(unarr_static PROPERTIES OUTPUT_NAME unarr SOVERSION ${UNARR_API_VERSION_MAJOR}.${UNARR_API_VERSION_MINOR})
+set_target_properties(unarr PROPERTIES VERSION ${UNARR_API_VERSION_MAJOR}.${UNARR_API_VERSION_MINOR} SOVERSION ${UNARR_API_VERSION_MAJOR})
+set_target_properties(unarr_static PROPERTIES OUTPUT_NAME unarr VERSION ${UNARR_API_VERSION_MAJOR}.${UNARR_API_VERSION_MINOR} SOVERSION ${UNARR_API_VERSION_MAJOR})
 
 #library detection macros
 
