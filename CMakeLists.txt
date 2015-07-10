@@ -20,7 +20,7 @@ find_package(ZLIB)
 find_package(BZip2)
 
 if (UNIX OR MINGW)
-    add_compile_options(-std=c99 -fomit-frame-pointer)
+    add_compile_options(-fomit-frame-pointer -D_FILE_OFFSET_BITS=64)
 endif (UNIX OR MINGW)
 
 #sources
