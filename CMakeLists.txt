@@ -1,95 +1,118 @@
-cmake_minimum_required(VERSION 2.8)
-project(unarr C)
+cmake_minimum_required(VERSION 3.0)
+project(unarr VERSION 1.0 LANGUAGES C)
+
+set(PROJECT_DESCRIPTION
+  "A lightweight decompression library for rar, tar and zip files.")
 
 # Set up api and release version for later use.
 # Increase in major api version indicates api
 # breakage!! For non-breaking changes, use
 # minor api version instead.
-set (UNARR_API_VERSION_MAJOR 1)
-set (UNARR_API_VERSION_MINOR 0)
+set(UNARR_API_VERSION_MAJOR 1)
+set(UNARR_API_VERSION_MINOR 0)
 
-# set build type to default if unset
-if( NOT CMAKE_BUILD_TYPE )
-  set( CMAKE_BUILD_TYPE Release CACHE STRING
-       "Choose the type of build, options are: None Debug Release RelWithDebInfo
-MinSizeRel."
-       FORCE )
+include(GNUInstallDirs)
+
+# Set build type to default if unset.
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
+    "MinSizeRel" "RelWithDebInfo")
 endif()
 
-option ( BUILD_SHARED_LIBS "Build unarr as a shared library" ON )
+option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library" ON)
 
 find_package(ZLIB)
 find_package(BZip2)
 
-if (UNIX OR MINGW)
-    add_compile_options(-fomit-frame-pointer -D_FILE_OFFSET_BITS=64)
-endif (UNIX OR MINGW)
+if(UNIX OR MINGW)
+  add_compile_options(-fomit-frame-pointer -D_FILE_OFFSET_BITS=64)
+endif()
 
-# sources
+# Sources
 
-set (HEADERS 	common/allocator.h
-			common/unarr-imp.h
-			rar/rar.h
-			rar/lzss.h
-			rar/rarvm.h
-			lzmasdk/LzmaDec.h
-			lzmasdk/Ppmd7.h
-			lzmasdk/CpuArch.h
-			lzmasdk/Ppmd.h
-			lzmasdk/7zTypes.h
-			lzmasdk/Ppmd8.h
-			lzmasdk/Precomp.h
-			_7z/_7z.h
-			zip/zip.h
-			zip/inflate.h
-			tar/tar.h)
+set(HEADERS common/allocator.h
+  common/unarr-imp.h
+  rar/rar.h
+  rar/lzss.h
+  rar/rarvm.h
+  lzmasdk/LzmaDec.h
+  lzmasdk/Ppmd7.h
+  lzmasdk/CpuArch.h
+  lzmasdk/Ppmd.h
+  lzmasdk/7zTypes.h
+  lzmasdk/Ppmd8.h
+  lzmasdk/Precomp.h
+  _7z/_7z.h
+  zip/zip.h
+  zip/inflate.h
+  tar/tar.h)
 
-set (SOURCES	rar/uncompress-rar.c
-			rar/huffman-rar.c
-			rar/rar.c
-			rar/filter-rar.c
-			rar/rarvm.c
-			rar/parse-rar.c
-			_7z/_7z.c
-			zip/zip.c
-			zip/inflate.c
-			zip/parse-zip.c
-			zip/uncompress-zip.c
-			tar/tar.c
-			tar/parse-tar.c
-			lzmasdk/Ppmd7.c
-			lzmasdk/Ppmd8.c
-			lzmasdk/CpuArch.c
-			lzmasdk/LzmaDec.c
-			lzmasdk/Ppmd7Dec.c
-			lzmasdk/Ppmd8Dec.c
-			common/custalloc.c
-			common/unarr.c
-			common/stream.c
-			common/conv.c
-			common/crc32.c
-			)
+set(SOURCES rar/uncompress-rar.c
+  rar/huffman-rar.c
+  rar/rar.c
+  rar/filter-rar.c
+  rar/rarvm.c
+  rar/parse-rar.c
+  _7z/_7z.c
+  zip/zip.c
+  zip/inflate.c
+  zip/parse-zip.c
+  zip/uncompress-zip.c
+  tar/tar.c
+  tar/parse-tar.c
+  lzmasdk/Ppmd7.c
+  lzmasdk/Ppmd8.c
+  lzmasdk/CpuArch.c
+  lzmasdk/LzmaDec.c
+  lzmasdk/Ppmd7Dec.c
+  lzmasdk/Ppmd8Dec.c
+  common/custalloc.c
+  common/unarr.c
+  common/stream.c
+  common/conv.c
+  common/crc32.c
+  )
 
-# build targets
+# Build targets
 
 add_library(unarr unarr.h ${HEADERS} ${SOURCES})
-set_target_properties(unarr PROPERTIES VERSION ${UNARR_API_VERSION_MAJOR}.${UNARR_API_VERSION_MINOR} SOVERSION ${UNARR_API_VERSION_MAJOR})
+set_target_properties(unarr PROPERTIES VERSION
+                      ${UNARR_API_VERSION_MAJOR}.${UNARR_API_VERSION_MINOR}
+                      SOVERSION ${UNARR_API_VERSION_MAJOR})
 
-# library detection macros
+# Check if zlib and bzip2 are present.
+# If yes, use them.
 
-if (ZLIB_FOUND)
-    include_directories(${ZLIB_INCLUDE_DIRS})
-    target_link_libraries(unarr ${ZLIB_LIBRARIES})
-    add_definitions(-DHAVE_ZLIB)
-endif(ZLIB_FOUND)
+if(ZLIB_FOUND)
+  include_directories(${ZLIB_INCLUDE_DIRS})
+  target_link_libraries(unarr ${ZLIB_LIBRARIES})
+  add_definitions(-DHAVE_ZLIB)
+  # Add zlib to libunarr.pc Requires.private
+  set (PKG_CONFIG_REQUIRES_PRIVATE "${PKG_CONFIG_REQUIRES_PRIVATE} zlib")
+endif()
 
-if (BZIP2_FOUND)
-    include_directories(${BZIP_INCLUDE_DIRS})
-    target_link_libraries (unarr ${BZIP2_LIBRARIES})
-    add_definitions(-DHAVE_BZIP2)
-endif (BZIP2_FOUND)
+if(BZIP2_FOUND)
+  include_directories(${BZIP_INCLUDE_DIRS})
+  target_link_libraries (unarr ${BZIP2_LIBRARIES})
+  add_definitions(-DHAVE_BZIP2)
+  # Bzip2 upstream does not supply a .pc file. Add it to Libs.private.
+  set (PKG_CONFIG_LIBS_PRIVATE "-I${BZIP_INCLUDE_DIRS} -l${BZIP2_LIBRARIES}")
+endif()
 
-# make install targets
+# Variables for libunarr.pc pkg-config file
 
-install(TARGETS unarr DESTINATION lib)
-install(FILES unarr.h DESTINATION include)
+set(PKG_CONFIG_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
+set(PKG_CONFIG_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+set(PKG_CONFIG_LIBS "-L\${libdir} -l${PROJECT_NAME}")
+set(PKG_CONFIG_CFLAGS "-I\${includedir}")
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/pkg-config.pc.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc"
+)
+
+# Targets for make install
+install(TARGETS unarr DESTINATION CMAKE_INSTALL_LIBDIR)
+install(FILES unarr.h DESTINATION CMAKE_INSTALL_INCLUDEDIR)
+install(FILES libunarr.pc DESTINATION CMAKE_INSTALL_LIBDIR/pkgconfig)
