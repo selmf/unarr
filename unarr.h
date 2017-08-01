@@ -4,6 +4,10 @@
 #ifndef unarr_h
 #define unarr_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -91,4 +95,8 @@ ar_archive *ar_open_zip_archive(ar_stream *stream, bool deflatedonly);
 /* checks whether 'stream' could contain 7Z data and prepares for archive listing/extraction; returns NULL on failure */
 ar_archive *ar_open_7z_archive(ar_stream *stream);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif //unarr_h
