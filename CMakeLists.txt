@@ -22,11 +22,17 @@ endif()
 
 option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library" ON)
 
+if(BUILD_SHARED_LIBS)
+  set(CMAKE_C_VISIBILITY_PRESET hidden)
+  add_definitions(-DUNARR_IS_SHARED_LIBRARY -DUNARR_EXPORT_SYMBOLS)
+endif()
+
 find_package(ZLIB)
 find_package(BZip2)
 
 if(UNIX OR MINGW)
-  add_compile_options(-fomit-frame-pointer -D_FILE_OFFSET_BITS=64)
+  add_compile_options(-fomit-frame-pointer)
+  add_definitions(-D_FILE_OFFSET_BITS=64)
 endif()
 
 # Sources
