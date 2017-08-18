@@ -250,7 +250,7 @@ off64_t zip_find_end_of_central_directory(ar_stream *stream)
     filesize = ar_tell(stream);
 
     while (fromend < UINT16_MAX + ZIP_END_OF_CENTRAL_DIR_SIZE && fromend < filesize) {
-        count = (int)(filesize - fromend < sizeof(data) ? filesize - fromend : sizeof(data));
+        count = (filesize - fromend < (int)sizeof(data) ? filesize - fromend : (int)sizeof(data));
         fromend += count;
         if (count < ZIP_END_OF_CENTRAL_DIR_SIZE)
             return -1;

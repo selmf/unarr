@@ -95,7 +95,7 @@ static void MyCPUID(UInt32 function, UInt32 *a, UInt32 *b, UInt32 *c, UInt32 *d)
     : "0" (function)) ;
 
   #endif
-  
+
   #else
 
   int CPUInfo[4];
@@ -137,7 +137,7 @@ int x86cpuid_GetFirm(const Cx86cpuid *p)
   return -1;
 }
 
-Bool CPU_Is_InOrder()
+Bool CPU_Is_InOrder(void)
 {
   Cx86cpuid p;
   int firm;
@@ -178,7 +178,7 @@ static Bool CPU_Sys_Is_SSE_Supported()
 #define CHECK_SYS_SSE_SUPPORT
 #endif
 
-Bool CPU_Is_Aes_Supported()
+Bool CPU_Is_Aes_Supported(void)
 {
   Cx86cpuid p;
   CHECK_SYS_SSE_SUPPORT

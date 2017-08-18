@@ -28,7 +28,7 @@ struct RARProgram_s {
 
 /* Program building */
 
-RARProgram *RARCreateProgram()
+RARProgram *RARCreateProgram(void)
 {
     return calloc(1, sizeof(RARProgram));
 }
@@ -416,7 +416,7 @@ void RARVirtualMachineWrite8(RARVirtualMachine *vm, uint32_t address, uint8_t va
 
 static uint32_t _RARGetOperand(RARVirtualMachine *vm, uint8_t addressingmode, uint32_t value, bool bytemode)
 {
-    if (RARRegisterAddressingMode(0) <= addressingmode && addressingmode <= RARRegisterAddressingMode(7)) {
+    if (/*RARRegisterAddressingMode(0) <= addressingmode && */addressingmode <= RARRegisterAddressingMode(7)) {
         uint32_t result = vm->registers[addressingmode % 8];
         if (bytemode)
             result = result & 0xFF;
@@ -443,7 +443,7 @@ static uint32_t _RARGetOperand(RARVirtualMachine *vm, uint8_t addressingmode, ui
 
 static void _RARSetOperand(RARVirtualMachine *vm, uint8_t addressingmode, uint32_t value, bool bytemode, uint32_t data)
 {
-    if (RARRegisterAddressingMode(0) <= addressingmode && addressingmode <= RARRegisterAddressingMode(7)) {
+    if (/*RARRegisterAddressingMode(0) <= addressingmode &&*/ addressingmode <= RARRegisterAddressingMode(7)) {
         if (bytemode)
             data = data & 0xFF;
         vm->registers[addressingmode % 8] = data;

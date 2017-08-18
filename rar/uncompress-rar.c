@@ -358,7 +358,7 @@ static uint8_t rar_decode_audio(struct AudioState *state, int8_t *channeldelta, 
     return byte;
 }
 
-int64_t rar_expand_v2(ar_archive_rar *rar, int64_t end)
+static int64_t rar_expand_v2(ar_archive_rar *rar, int64_t end)
 {
     static const uint8_t lengthbases[] =
         {   0,   1,   2,   3,   4,   5,   6,
@@ -586,7 +586,7 @@ static bool rar_parse_codes(ar_archive_rar *rar)
         if (!br_bits(rar, 1))
             memset(uncomp_v3->lengthtable, 0, sizeof(uncomp_v3->lengthtable));
         memset(&bitlengths, 0, sizeof(bitlengths));
-        for (i = 0; i < sizeof(bitlengths); i++) {
+        for (i = 0; i < (int)sizeof(bitlengths); i++) {
             if (!br_check(rar, 4))
                 return false;
             bitlengths[i] = (uint8_t)br_bits(rar, 4);
@@ -595,7 +595,7 @@ static bool rar_parse_codes(ar_archive_rar *rar)
                     return false;
                 zerocount = (uint8_t)br_bits(rar, 4);
                 if (zerocount) {
-                    for (j = 0; j < zerocount + 2 && i < sizeof(bitlengths); j++) {
+                    for (j = 0; j < zerocount + 2 && i < (int)sizeof(bitlengths); j++) {
                         bitlengths[i++] = 0;
                     }
                     i--;

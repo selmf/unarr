@@ -30,9 +30,18 @@ endif()
 find_package(ZLIB)
 find_package(BZip2)
 
-if(UNIX OR MINGW)
-  add_compile_options(-fomit-frame-pointer)
+if(UNIX OR MINGW OR MSYS)
+  add_compile_options(-Wall -Wextra -pedantic
+                      -Wstrict-prototypes -Wmissing-prototypes
+                      -Werror-implicit-function-declaration
+                      -fomit-frame-pointer -flto)
   add_definitions(-D_FILE_OFFSET_BITS=64)
+  
+  if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+    add_compile_options(-Wno-missing-field-initializers)
+    list(APPEND CMAKE_SHARED_LINKER_FLAGS -flto)
+    list(APPEND CMAKE_STATIC_LINKER_FLAGS -flto)
+  endif()
 endif()
 
 # Sources
@@ -73,7 +82,7 @@ set(SOURCES rar/uncompress-rar.c
   lzmasdk/LzmaDec.c
   lzmasdk/Ppmd7Dec.c
   lzmasdk/Ppmd8Dec.c
-  common/custalloc.c
+  #common/custalloc.c
   common/unarr.c
   common/stream.c
   common/conv.c

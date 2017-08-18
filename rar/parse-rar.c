@@ -116,8 +116,8 @@ static char *rar_conv_unicode_to_utf8(const char *data, uint16_t len)
 #define Check(cond) if (!(cond)) { free(str); return NULL; } else ((void)0)
 
     uint8_t highbyte, flagbyte, flagbits, size, length, i;
-    const uint8_t *in = (uint8_t *)data + strlen(data) + 1;
-    const uint8_t *end_in = (uint8_t *)data + len;
+    const uint8_t *in = (const uint8_t *)data + strlen(data) + 1;
+    const uint8_t *end_in = (const uint8_t *)data + len;
     char *str = calloc(len + 1, 3);
     char *out = str;
     char *end_out = str + len * 3;

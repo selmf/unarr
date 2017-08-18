@@ -165,7 +165,7 @@ static bool zip_uncompress(ar_archive *ar, void *buffer, size_t count)
     return true;
 }
 
-size_t zip_get_global_comment(ar_archive *ar, void *buffer, size_t count)
+static size_t zip_get_global_comment(ar_archive *ar, void *buffer, size_t count)
 {
     ar_archive_zip *zip = (ar_archive_zip *)ar;
     if (!zip->comment_size)
