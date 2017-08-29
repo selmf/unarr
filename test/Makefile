@@ -45,7 +45,7 @@ LINK_CMD = $(QUIET_LINK) $(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 UNARR_OUT := $(OUT)/unarr
 
-UNARR_DIRS := common lzmasdk rar tar zip _7z
+UNARR_DIRS := .. ../common ../lzmasdk ../rar ../tar ../zip ../_7z
 UNARR_SRC := $(wildcard $(UNARR_DIRS:=/*.c))
 UNARR_OBJ := $(addprefix $(UNARR_OUT)/, $(addsuffix .o, $(basename $(UNARR_SRC))))
 
