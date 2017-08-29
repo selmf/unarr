@@ -1,7 +1,8 @@
 ﻿unarr contains code by:
 
-* The Unarchiver project (https://code.google.com/p/theunarchiver/)
+* The Unarchiver project (https://bitbucket.org/kosovan/theunarchiver/)
 * Simon Bünzli (zeniko at gmail.com, http://www.zeniko.ch/#SumatraPDF)
+* Felix Kauselmann (licorn at gmail.com)
 
 Most code is licensed under LGPLv3 (see COPYING). Exceptions are in code
 included from other projects:
