@@ -166,6 +166,117 @@ static void zip_clear_uncompress_bzip2(struct ar_archive_zip_uncomp *uncomp)
 
 /***** LZMA compression *****/
 
+#ifdef HAVE_LIBLZMA
+
+void *gLzma_Alloc(void *opaque, size_t nmemb, size_t size)
+    { (void)opaque; return malloc(size); }
+void gLzma_Free(void *opaque, void *ptr)
+    { (void)opaque; free(ptr); }
+
+static bool zip_init_uncompress_lzma(struct ar_archive_zip_uncomp *uncomp)
+{
+    lzma_stream strm = LZMA_STREAM_INIT;
+    uncomp->state.lzmastream = strm;
+    static const lzma_allocator allocator = { gLzma_Alloc, gLzma_Free, NULL };
+    uncomp->state.lzmastream.allocator = &allocator;
+    return true;
+}
+
+static uint32_t zip_uncompress_data_lzma1(struct ar_archive_zip_uncomp *uncomp, void *buffer, uint32_t buffer_size, bool is_last_chunk)
+{
+    int err;
+
+    if (uncomp->state.lzmastream.internal == NULL) {
+        uint8_t propsize;
+        propsize = uncomp->input.data[uncomp->input.offset + 2];
+
+        lzma_filter filters[2] = {{.id=LZMA_FILTER_LZMA1, .options=NULL},
+                                  {.id=LZMA_VLI_UNKNOWN, .options=NULL}};
+
+        err = lzma_properties_decode(
+        		       &filters[0], NULL,
+        		       &uncomp->input.data[uncomp->input.offset + 4], propsize);
+
+        if (err != LZMA_OK) {
+            warn("Properties error %d", err);
+            return ERR_UNCOMP;
+        }
+
+        err = lzma_raw_decoder(&uncomp->state.lzmastream, filters);
+        free(filters[0].options);
+        if (err != LZMA_OK) {
+            warn("Decoder init error %d", err);
+            return ERR_UNCOMP;
+        }
+        uncomp->input.offset += 4 + propsize;
+        uncomp->input.bytes_left -= 4 + propsize;
+    }
+
+    uncomp->state.lzmastream.next_in = &uncomp->input.data[uncomp->input.offset];
+    uncomp->state.lzmastream.avail_in = uncomp->input.bytes_left;
+    uncomp->state.lzmastream.next_out = buffer;
+    uncomp->state.lzmastream.avail_out = buffer_size;
+
+    err = lzma_code(&uncomp->state.lzmastream, LZMA_RUN);
+
+    uncomp->input.offset += (uint16_t)uncomp->input.bytes_left - (uint16_t)uncomp->state.lzmastream.avail_in;
+    uncomp->input.bytes_left = (uint16_t)uncomp->state.lzmastream.avail_in;
+
+    if (err != LZMA_OK && err != LZMA_STREAM_END) {
+        warn("Unexpected LZMA error %d", err);
+        warn("%d", buffer_size - uncomp->state.lzmastream.avail_out);
+        return ERR_UNCOMP;
+    }
+    if (err == LZMA_STREAM_END && (!is_last_chunk || uncomp->state.lzmastream.avail_out)) {
+        warn("Premature EOS in LZMA stream");
+        return ERR_UNCOMP;
+    }
+    return buffer_size - uncomp->state.lzmastream.avail_out;
+}
+
+static uint32_t zip_uncompress_data_xz(struct ar_archive_zip_uncomp *uncomp, void *buffer, uint32_t buffer_size, bool is_last_chunk)
+{
+    int err;
+
+    if (uncomp->state.lzmastream.internal == NULL) {
+        /* restrict decoder memory usage to 100 MB */
+        err = lzma_stream_decoder(&uncomp->state.lzmastream, 100 << 20, 0);
+        if (err != LZMA_OK) {
+            warn("Unexpected LZMA Decoder init error %d", err);
+            return ERR_UNCOMP;
+        }
+    }
+
+    uncomp->state.lzmastream.next_in = &uncomp->input.data[uncomp->input.offset];
+    uncomp->state.lzmastream.avail_in = uncomp->input.bytes_left;
+    uncomp->state.lzmastream.next_out = buffer;
+    uncomp->state.lzmastream.avail_out = buffer_size;
+
+    err = lzma_code(&uncomp->state.lzmastream, LZMA_RUN);
+
+    uncomp->input.offset += (uint16_t)uncomp->input.bytes_left - (uint16_t)uncomp->state.lzmastream.avail_in;
+    uncomp->input.bytes_left = (uint16_t)uncomp->state.lzmastream.avail_in;
+
+    if (err != LZMA_OK && err != LZMA_STREAM_END) {
+        warn("Unexpected XZ error %d", err);
+        warn("%d", buffer_size - uncomp->state.lzmastream.avail_out);
+        return ERR_UNCOMP;
+    }
+    if (err == LZMA_STREAM_END && (!is_last_chunk || uncomp->state.lzmastream.avail_out)) {
+        warn("Premature EOS in XZ stream");
+        return ERR_UNCOMP;
+    }
+    return buffer_size - uncomp->state.lzmastream.avail_out;
+}
+
+
+static void zip_clear_uncompress_lzma(struct ar_archive_zip_uncomp *uncomp)
+{
+    lzma_end(&uncomp->state.lzmastream);
+}
+
+#else //HAVE_LIBLZMA
+
 static void *gLzma_Alloc(void *self, size_t size) { (void)self; return malloc(size); }
 static void gLzma_Free(void *self, void *ptr) { (void)self; free(ptr); }
 
@@ -228,6 +339,8 @@ static void zip_clear_uncompress_lzma(struct ar_archive_zip_uncomp *uncomp)
 {
     LzmaDec_Free(&uncomp->state.lzma.dec, &uncomp->state.lzma.alloc);
 }
+
+#endif //HAVE_LIBLZMA
 
 /***** PPMd compression *****/
 
@@ -350,12 +463,27 @@ static bool zip_init_uncompress(ar_archive_zip *zip)
         warn("BZIP2 support requires BZIP2 (define HAVE_BZIP2)");
 #endif
     }
+#ifdef HAVE_LIBLZMA
+    else if (zip->entry.method == METHOD_LZMA) {
+        if (zip_init_uncompress_lzma(uncomp)) {
+            uncomp->uncompress_data = zip_uncompress_data_lzma1;
+            uncomp->clear_state = zip_clear_uncompress_lzma;
+        }
+    }
+    else if (zip->entry.method == METHOD_XZ) {
+        if (zip_init_uncompress_lzma(uncomp)) {
+            uncomp->uncompress_data = zip_uncompress_data_xz;
+            uncomp->clear_state = zip_clear_uncompress_lzma;
+        }
+    }
+#else
     else if (zip->entry.method == METHOD_LZMA) {
         if (zip_init_uncompress_lzma(uncomp, zip->entry.flags)) {
             uncomp->uncompress_data = zip_uncompress_data_lzma;
             uncomp->clear_state = zip_clear_uncompress_lzma;
         }
     }
+#endif // HAVE_LIBLZMA
     else if (zip->entry.method == METHOD_PPMD) {
         if (zip_init_uncompress_ppmd(zip)) {
             uncomp->uncompress_data = zip_uncompress_data_ppmd;

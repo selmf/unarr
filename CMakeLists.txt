@@ -29,6 +29,7 @@ endif()
 
 find_package(ZLIB)
 find_package(BZip2)
+find_package(LibLZMA)
 
 if(UNIX OR MINGW OR MSYS)
   add_compile_options(-Wall -Wextra -pedantic
@@ -36,7 +37,7 @@ if(UNIX OR MINGW OR MSYS)
                       -Werror-implicit-function-declaration
                       -fomit-frame-pointer -flto)
   add_definitions(-D_FILE_OFFSET_BITS=64)
-  
+
   if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     add_compile_options(-Wno-missing-field-initializers)
     list(APPEND CMAKE_SHARED_LINKER_FLAGS -flto)
@@ -113,6 +114,12 @@ if(BZIP2_FOUND)
   add_definitions(-DHAVE_BZIP2)
   # Bzip2 upstream does not supply a .pc file. Add it to Libs.private.
   set (PKG_CONFIG_LIBS_PRIVATE "-I${BZIP_INCLUDE_DIRS} -l${BZIP2_LIBRARIES}")
+endif()
+
+if(LIBLZMA_FOUND)
+  include_directories(${LIBLZMA_INCLUDE_DIRS})
+  target_link_libraries(unarr ${LIBLZMA_LIBRARIES})
+  add_definitions(-DHAVE_LIBLZMA)
 endif()
 
 # Variables for libunarr.pc pkg-config file

@@ -13,7 +13,11 @@
 #ifdef HAVE_BZIP2
 #include <bzlib.h>
 #endif
+#ifdef HAVE_LIBLZMA
+#include <lzma.h>
+#else
 #include "../lzmasdk/LzmaDec.h"
+#endif
 #include "../lzmasdk/Ppmd8.h"
 
 typedef struct ar_archive_zip_s ar_archive_zip;
@@ -31,7 +35,7 @@ enum zip_signatures {
 enum compression_method {
     METHOD_STORE = 0, METHOD_DEFLATE = 8,
     METHOD_DEFLATE64 = 9, METHOD_BZIP2 = 12, METHOD_LZMA = 14,
-    METHOD_PPMD = 98,
+    METHOD_XZ = 95, METHOD_PPMD = 98,
 };
 
 #define ZIP_LOCAL_ENTRY_FIXED_SIZE 30
@@ -120,11 +124,15 @@ struct ar_archive_zip_uncomp {
 #ifdef HAVE_BZIP2
         bz_stream bstream;
 #endif
+#ifdef HAVE_LIBLZMA
+        lzma_stream lzmastream;
+#else
         struct {
             CLzmaDec dec;
             ELzmaFinishMode finish;
             ISzAlloc alloc;
         } lzma;
+#endif //HAVE_LIBLZMA
         struct {
             CPpmd8 ctx;
             struct ByteReader bytein;
