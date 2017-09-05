@@ -52,7 +52,6 @@ set(HEADERS common/allocator.h
   rar/rar.h
   rar/lzss.h
   rar/rarvm.h
-  lzmasdk/LzmaDec.h
   lzmasdk/Ppmd7.h
   lzmasdk/CpuArch.h
   lzmasdk/Ppmd.h
@@ -80,7 +79,7 @@ set(SOURCES rar/uncompress-rar.c
   lzmasdk/Ppmd7.c
   lzmasdk/Ppmd8.c
   lzmasdk/CpuArch.c
-  lzmasdk/LzmaDec.c
+  #lzmasdk/LzmaDec.c
   lzmasdk/Ppmd7Dec.c
   lzmasdk/Ppmd8Dec.c
   #common/custalloc.c
@@ -89,6 +88,11 @@ set(SOURCES rar/uncompress-rar.c
   common/conv.c
   common/crc32.c
   )
+
+if(NOT LIBLZMA_FOUND)
+  list(APPEND HEADERS lzmasdk/LzmaDec.h)
+  list(APPEND SOURCES lzmasdk/LzmaDec.c)
+endif()
 
 # Build targets
 

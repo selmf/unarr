@@ -277,8 +277,8 @@ static void zip_clear_uncompress_lzma(struct ar_archive_zip_uncomp *uncomp)
 
 #else //HAVE_LIBLZMA
 
-static void *gLzma_Alloc(void *self, size_t size) { (void)self; return malloc(size); }
-static void gLzma_Free(void *self, void *ptr) { (void)self; free(ptr); }
+static void *gLzma_Alloc(ISzAllocPtr self, size_t size) { (void)self; return malloc(size); }
+static void gLzma_Free(ISzAllocPtr self, void *ptr) { (void)self; free(ptr); }
 
 static bool zip_init_uncompress_lzma(struct ar_archive_zip_uncomp *uncomp, uint16_t flags)
 {
@@ -344,12 +344,12 @@ static void zip_clear_uncompress_lzma(struct ar_archive_zip_uncomp *uncomp)
 
 /***** PPMd compression *****/
 
-static void *gPpmd_Alloc(void *self, size_t size) { (void)self; return malloc(size); }
-static void gPpmd_Free(void *self, void *ptr) { (void)self; free(ptr); }
+static void *gPpmd_Alloc(ISzAllocPtr self, size_t size) { (void)self; return malloc(size); }
+static void gPpmd_Free(ISzAllocPtr self, void *ptr) { (void)self; free(ptr); }
 
-static Byte gPpmd_ByteIn_Read(void *p)
+static Byte gPpmd_ByteIn_Read(const IByteIn *p)
 {
-    struct ByteReader *self = p;
+    struct ByteReader *self = (struct ByteReader *) p;
     if (!self->input->bytes_left && (!self->zip->progress.data_left || !zip_fill_input_buffer(self->zip)))
         return 0xFF;
     self->input->bytes_left--;
@@ -358,6 +358,7 @@ static Byte gPpmd_ByteIn_Read(void *p)
 
 static bool zip_init_uncompress_ppmd(ar_archive_zip *zip)
 {
+    warn("init ppmd");
     struct ar_archive_zip_uncomp *uncomp = &zip->uncomp;
     uncomp->state.ppmd8.alloc.Alloc = gPpmd_Alloc;
     uncomp->state.ppmd8.alloc.Free = gPpmd_Free;
