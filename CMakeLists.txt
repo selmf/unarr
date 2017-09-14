@@ -124,6 +124,7 @@ if(LIBLZMA_FOUND)
   include_directories(${LIBLZMA_INCLUDE_DIRS})
   target_link_libraries(unarr ${LIBLZMA_LIBRARIES})
   add_definitions(-DHAVE_LIBLZMA)
+  set (PKG_CONFIG_REQUIRES_PRIVATE "${PKG_CONFIG_REQUIRES_PRIVATE} liblzma")
 endif()
 
 # Variables for libunarr.pc pkg-config file
