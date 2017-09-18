@@ -574,7 +574,7 @@ bool RARInstructionWritesSecondOperand(uint8_t instruction)
 
 static void RARPrintOperand(uint8_t addressingmode, uint32_t value)
 {
-    if (RARRegisterAddressingMode(0) <= addressingmode && addressingmode <= RARRegisterAddressingMode(7))
+    if (/*RARRegisterAddressingMode(0) <= addressingmode && */addressingmode <= RARRegisterAddressingMode(7))
         printf("r%d", addressingmode % 8);
     else if (RARRegisterIndirectAddressingMode(0) <= addressingmode && addressingmode <= RARRegisterIndirectAddressingMode(7))
         printf("@(r%d)", addressingmode % 8);
