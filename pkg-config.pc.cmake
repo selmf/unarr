@@ -1,11 +1,11 @@
-prefix=${CMAKE_INSTALL_PREFIX}
-includedir=${PKG_CONFIG_INCLUDEDIR}
-libdir=${PKG_CONFIG_LIBDIR}
+prefix=@CMAKE_INSTALL_PREFIX@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+libdir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR_LIBDIR@
 
-Name: ${PROJECT_NAME}
-Description: ${PROJECT_DESCRIPTION}
-Version: ${PROJECT_VERSION}
-Cflags: ${PKG_CONFIG_CFLAGS}
-Requires.private: ${PKG_CONFIG_REQUIRES_PRIVATE}
-Libs: ${PKG_CONFIG_LIBS}
-Libs.private: ${PKG_CONFIG_LIBS_PRIVATE}
+Name: @PROJECT_NAME@
+Description: @PROJECT_DESCRIPTION@
+Version: @PROJECT_VERSION@
+Cflags: -I${includedir}
+Requires.private: @PROJECT_REQUIRES_PRIVATE@
+Libs: -L${libdir} -l@PROJECT_NAME@
+Libs.private: @PROJECT_LIBS_PRIVATE@

@@ -1,15 +1,8 @@
-cmake_minimum_required(VERSION 3.0)
-project(unarr VERSION 1.0 LANGUAGES C)
+cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
+project(unarr VERSION 1.0.0 LANGUAGES C)
 set(PROJECT_DESCRIPTION
-  "A lightweight decompression library for rar, tar and zip files.")
-
-# Set up api and release version for later use.
-# Increase in major api version indicates api
-# breakage!! For non-breaking changes, use
-# minor api version instead.
-set(UNARR_API_VERSION_MAJOR 1)
-set(UNARR_API_VERSION_MINOR 0)
+  "A decompression library for rar, tar and zip files.")
 
 include(GNUInstallDirs)
 
@@ -20,127 +13,120 @@ if(NOT CMAKE_BUILD_TYPE)
     "MinSizeRel" "RelWithDebInfo")
 endif()
 
+# Build options
 option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library" ON)
 
-if(BUILD_SHARED_LIBS)
-  set(CMAKE_C_VISIBILITY_PRESET hidden)
-  add_definitions(-DUNARR_IS_SHARED_LIBRARY -DUNARR_EXPORT_SYMBOLS)
-endif()
-
-find_package(ZLIB)
-find_package(BZip2)
-find_package(LibLZMA)
-
-if(UNIX OR MINGW OR MSYS)
-  add_compile_options(-Wall -Wextra -pedantic
-                      -Wstrict-prototypes -Wmissing-prototypes
-                      -Werror-implicit-function-declaration
-                      -fomit-frame-pointer -flto)
-  add_definitions(-D_FILE_OFFSET_BITS=64)
-
-  if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    add_compile_options(-Wno-missing-field-initializers)
-    list(APPEND CMAKE_SHARED_LINKER_FLAGS -flto)
-    list(APPEND CMAKE_STATIC_LINKER_FLAGS -flto)
-  endif()
-endif()
-
-# Sources
-
-set(HEADERS common/allocator.h
+# Build target
+add_library(unarr
+  _7z/_7z.h
+  _7z/_7z.c
+  common/allocator.h
   common/unarr-imp.h
-  rar/rar.h
-  rar/lzss.h
-  rar/rarvm.h
-  lzmasdk/Ppmd7.h
+  common/conv.c
+  common/crc32.c
+  #common/custalloc.c
+  common/stream.c
+  common/unarr.c
+  lzmasdk/7zTypes.h
   lzmasdk/CpuArch.h
   lzmasdk/Ppmd.h
-  lzmasdk/7zTypes.h
+  lzmasdk/Ppmd7.h
   lzmasdk/Ppmd8.h
   lzmasdk/Precomp.h
-  _7z/_7z.h
-  zip/zip.h
-  zip/inflate.h
-  tar/tar.h)
-
-set(SOURCES rar/uncompress-rar.c
+  lzmasdk/CpuArch.c
+  lzmasdk/Ppmd7.c
+  lzmasdk/Ppmd8.c
+  lzmasdk/Ppmd7Dec.c
+  lzmasdk/Ppmd8Dec.c
+  rar/lzss.h
+  rar/rar.h
+  rar/rarvm.h
+  rar/filter-rar.c
+  rar/uncompress-rar.c
   rar/huffman-rar.c
   rar/rar.c
-  rar/filter-rar.c
   rar/rarvm.c
   rar/parse-rar.c
-  _7z/_7z.c
-  zip/zip.c
+  tar/tar.h
+  tar/parse-tar.c
+  tar/tar.c
+  zip/inflate.h
+  zip/zip.h
   zip/inflate.c
   zip/parse-zip.c
   zip/uncompress-zip.c
-  tar/tar.c
-  tar/parse-tar.c
-  lzmasdk/Ppmd7.c
-  lzmasdk/Ppmd8.c
-  lzmasdk/CpuArch.c
-  #lzmasdk/LzmaDec.c
-  lzmasdk/Ppmd7Dec.c
-  lzmasdk/Ppmd8Dec.c
-  #common/custalloc.c
-  common/unarr.c
-  common/stream.c
-  common/conv.c
-  common/crc32.c
-  )
+  zip/zip.c)
 
-if(NOT LIBLZMA_FOUND)
-  list(APPEND HEADERS lzmasdk/LzmaDec.h)
-  list(APPEND SOURCES lzmasdk/LzmaDec.c)
+set_target_properties(unarr PROPERTIES PUBLIC_HEADER unarr.h
+                      C_VISIBILITY_PRESET hidden
+                      DEFINE_SYMBOL UNARR_EXPORT_SYMBOLS
+                      VERSION ${PROJECT_VERSION}
+                      SOVERSION ${PROJECT_VERSION_MAJOR})
+
+if(BUILD_SHARED_LIBS)
+  target_compile_definitions(unarr PUBLIC UNARR_IS_SHARED_LIBRARY)
 endif()
 
-# Build targets
-
-add_library(unarr unarr.h ${HEADERS} ${SOURCES})
-set_target_properties(unarr PROPERTIES VERSION
-                      ${UNARR_API_VERSION_MAJOR}.${UNARR_API_VERSION_MINOR}
-                      SOVERSION ${UNARR_API_VERSION_MAJOR})
-
-# Check if zlib and bzip2 are present.
-# If yes, use them.
-
-if(ZLIB_FOUND)
-  include_directories(${ZLIB_INCLUDE_DIRS})
-  target_link_libraries(unarr ${ZLIB_LIBRARIES})
-  add_definitions(-DHAVE_ZLIB)
-  # Add zlib to libunarr.pc Requires.private
-  set (PKG_CONFIG_REQUIRES_PRIVATE "${PKG_CONFIG_REQUIRES_PRIVATE} zlib")
-endif()
-
+find_package(BZip2)
 if(BZIP2_FOUND)
-  include_directories(${BZIP_INCLUDE_DIRS})
-  target_link_libraries (unarr ${BZIP2_LIBRARIES})
-  add_definitions(-DHAVE_BZIP2)
+  target_include_directories(unarr PRIVATE ${BZIP_INCLUDE_DIRS})
+  target_link_libraries(unarr ${BZIP2_LIBRARIES})
+  target_compile_definitions(unarr PRIVATE -DHAVE_BZIP2)
   # Bzip2 upstream does not supply a .pc file. Add it to Libs.private.
-  set (PKG_CONFIG_LIBS_PRIVATE "-I${BZIP_INCLUDE_DIRS} -l${BZIP2_LIBRARIES}")
+  set(PROJECT_LIBS_PRIVATE "-I${BZIP_INCLUDE_DIRS} -l${BZIP2_LIBRARIES}")
 endif()
 
+find_package(LibLZMA)
 if(LIBLZMA_FOUND)
-  include_directories(${LIBLZMA_INCLUDE_DIRS})
+  target_include_directories(unarr PRIVATE ${LIBLZMA_INCLUDE_DIRS})
   target_link_libraries(unarr ${LIBLZMA_LIBRARIES})
-  add_definitions(-DHAVE_LIBLZMA)
-  set (PKG_CONFIG_REQUIRES_PRIVATE "${PKG_CONFIG_REQUIRES_PRIVATE} liblzma")
+  target_compile_definitions(unarr PRIVATE -DHAVE_LIBLZMA)
+  set(PROJECT_REQUIRES_PRIVATE "${UNARR_REQUIRES_PRIVATE} liblzma")
+else()
+  target_sources(unarr PRIVATE
+    lzmasdk/LzmaDec.h
+    lzmasdk/LzmaDec.c)
 endif()
 
-# Variables for libunarr.pc pkg-config file
+find_package(ZLIB)
+if(ZLIB_FOUND)
+  target_include_directories(unarr PRIVATE ${ZLIB_INCLUDE_DIRS})
+  target_link_libraries(unarr ${ZLIB_LIBRARIES})
+  target_compile_definitions(unarr PRIVATE -DHAVE_ZLIB)
+  # Add zlib to libunarr.pc Requires.private
+  set(PROJECT_REQUIRES_PRIVATE "${PROJECT_REQUIRES_PRIVATE} zlib")
+endif()
 
-set(PKG_CONFIG_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
-set(PKG_CONFIG_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
-set(PKG_CONFIG_LIBS "-L\${libdir} -l${PROJECT_NAME}")
-set(PKG_CONFIG_CFLAGS "-I\${includedir}")
+# Compiler specific settings
 
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/pkg-config.pc.cmake"
-  "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc"
-)
+if(UNIX OR MINGW OR MSYS)
+  target_compile_options(unarr PRIVATE -Wall -Wextra -pedantic
+                        -Wstrict-prototypes -Wmissing-prototypes
+                        -Werror-implicit-function-declaration
+                        $<$<CONFIG:Release>:-fomit-frame-pointer>
+                        -flto)
+  target_compile_definitions(unarr PRIVATE -D_FILE_OFFSET_BITS=64)
+  set_target_properties(unarr PROPERTIES LINK_FLAGS
+                        "-Wl,--no-undefined -Wl,--as-needed")
+  if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+    target_compile_options(unarr PRIVATE -Wno-missing-field-initializers)
+    set_target_properties(unarr PROPERTIES LINK_FLAGS -flto)
+  endif()
+endif()
 
-# Targets for make install
-install(TARGETS unarr DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(FILES unarr.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libunarr.pc
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+if(MSVC)
+  target_add_compile_options(unarr PRIVATE /Wall $<$<CONFIG:Release>:/Ox>)
+endif()
+
+# Write pkg-config file
+configure_file("pkg-config.pc.cmake" "lib${PROJECT_NAME}.pc" @ONLY)
+
+# Install library and header
+install(TARGETS unarr
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+# Install pkg-config file
+install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib${PROJECT_NAME}.pc
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
