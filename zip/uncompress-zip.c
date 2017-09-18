@@ -358,7 +358,6 @@ static Byte gPpmd_ByteIn_Read(const IByteIn *p)
 
 static bool zip_init_uncompress_ppmd(ar_archive_zip *zip)
 {
-    warn("init ppmd");
     struct ar_archive_zip_uncomp *uncomp = &zip->uncomp;
     uncomp->state.ppmd8.alloc.Alloc = gPpmd_Alloc;
     uncomp->state.ppmd8.alloc.Free = gPpmd_Free;
