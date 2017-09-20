@@ -57,8 +57,11 @@ add_library(unarr
   zip/uncompress-zip.c
   zip/zip.c)
 
-set_target_properties(unarr PROPERTIES PUBLIC_HEADER unarr.h
+set_target_properties(unarr PROPERTIES
+                      PUBLIC_HEADER unarr.h
                       C_VISIBILITY_PRESET hidden
+                      C_STANDARD 99
+                      C_STANDARD_REQUIRED ON
                       DEFINE_SYMBOL UNARR_EXPORT_SYMBOLS
                       VERSION ${PROJECT_VERSION}
                       SOVERSION ${PROJECT_VERSION_MAJOR})
