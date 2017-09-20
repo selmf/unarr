@@ -115,17 +115,22 @@ if(UNIX OR MINGW OR MSYS)
 endif()
 
 if(MSVC)
-  target_add_compile_options(unarr PRIVATE /Wall $<$<CONFIG:Release>:/Ox>)
+  target_compile_options(unarr PRIVATE /W3
+                        $<$<CONFIG:Release>:/Ox>)
+  target_compile_definitions(unarr PRIVATE _CRT_SECURE_NO_WARNINGS)
 endif()
 
 # Write pkg-config file
 configure_file("pkg-config.pc.cmake" "lib${PROJECT_NAME}.pc" @ONLY)
 
 # Install library and header
-install(TARGETS unarr
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+if(WIN32)
+  install(TARGETS unarr RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
+else()
+  install(TARGETS unarr LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif()
 # Install pkg-config file
 install(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib${PROJECT_NAME}.pc
