@@ -104,16 +104,27 @@ endif()
 
 if(UNIX OR MINGW OR MSYS)
   target_compile_options(unarr PRIVATE -Wall -Wextra -pedantic
-                        -Wstrict-prototypes -Wmissing-prototypes
-                        -Werror-implicit-function-declaration
-                        $<$<CONFIG:Release>:-fomit-frame-pointer>
-                        -flto)
+                    -Wstrict-prototypes -Wmissing-prototypes
+                    -Werror-implicit-function-declaration
+                    $<$<CONFIG:Release>:-fomit-frame-pointer>
+                    $<$<OR:$<C_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>>:
+                    -Wno-missing-field-initializers>
+                    -flto)
   target_compile_definitions(unarr PRIVATE -D_FILE_OFFSET_BITS=64)
-  set_target_properties(unarr PROPERTIES LINK_FLAGS
-                        "-Wl,--no-undefined -Wl,--as-needed")
+
+  # Linker flags
+
+  # Clang linker needs -flto too when doing lto
   if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    target_compile_options(unarr PRIVATE -Wno-missing-field-initializers)
-    set_target_properties(unarr PROPERTIES LINK_FLAGS -flto)
+    set_target_properties(unarr PROPERTIES LINK_FLAGS
+                          "-Wl,--no-undefined -Wl,--as-needed -flto")
+  # Apple ld uses different syntax for undefined symbol check
+  elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
+    set_target_properties(unarr PROPERTIES LINK_FLAGS
+                          "-Wl,-undefined,error -flto")
+  else()
+    set_target_properties(unarr PROPERTIES LINK_FLAGS
+                          "-Wl,--no-undefined -Wl,--as-needed")
   endif()
 endif()
 
