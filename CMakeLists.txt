@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 
 project(unarr VERSION 1.0.0 LANGUAGES C)
 set(PROJECT_DESCRIPTION
@@ -138,13 +138,12 @@ endif()
 configure_file("pkg-config.pc.cmake" "lib${PROJECT_NAME}.pc" @ONLY)
 
 # Install library and header
-if(WIN32)
-  install(TARGETS unarr RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+install(TARGETS unarr
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-else()
-  install(TARGETS unarr LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-endif()
+
 # Install pkg-config file
 install(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib${PROJECT_NAME}.pc
