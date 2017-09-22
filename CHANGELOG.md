@@ -1,6 +1,6 @@
 # (lib)unarr changelog
 
-## 1.0.0 - (unreleased)
+## 1.0.0 - 2017-09-19
 
 ### Added
 * Cmake based build system for library builds
@@ -15,3 +15,6 @@ ZIP archives.
 * 7z extraction support is currently broken due to LZMA SDK api changes.
 * Unarr example executable (unarr-test) and it's makefile
   (legacy unarr build system) have been moved to the [test](test) folder
+
+### Fixed
+* Various small bugfixes related to compiler warnings
