@@ -1,10 +1,16 @@
 # (lib)unarr changelog
 
-## 1.0.0 - 2017-09-19
+## 1.0.1 - (unreleased)
+This is a bugfix release.
+
+### Fixed
+* Fix typo in pkg-config.pc.cmake template
+
+## 1.0.0 - 2017-09-22
 
 ### Added
 * Cmake based build system for library builds
-* Support for pkg-config (libunarr.pc)
+* Support for pkg-config (libunarr.pc)b
 * Windows compatible export header for DLL builds
 * xz utils / libLZMA can be used as decoder for LZMA1 and XZ (LZMA2) compressed
 ZIP archives.
