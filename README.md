@@ -15,6 +15,13 @@ development of unarr, which no longer is maintained.
 
 ## Getting started
 
+### Prebuilt packages
+[![Packaging status](https://repology.org/badge/vertical-allrepos/unarr.svg)](https://repology.org/metapackage/unarr)
+
+#### From OBS
+[.deb package](https://software.opensuse.org//download.html?project=home%3Aselmf&package=libunarr)  
+[.rpm package](https://software.opensuse.org//download.html?project=home%3Aselmf%3Ayacreader-rpm&package=libunarr)  
+
 ### Building from source
 
 #### Dependencies
@@ -28,7 +35,7 @@ development of unarr, which no longer is maintained.
 More information on what library is used for which purpose can be found in the
 description for embedded builds.
 
-#### Cmake
+#### CMake
 
 >mkdir build  
 >cd build  
