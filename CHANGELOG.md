@@ -1,5 +1,10 @@
 # (lib)unarr changelog
 
+## 1.0.2 - (unreleased)
+### Changed
+* Update lzma sdk to v. 18.05
+* Convert source to use LF line endings
+
 ## 1.0.1 - 2017-11-04
 This is a bugfix release.
 
