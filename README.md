@@ -62,7 +62,7 @@ You can define the following symbols to take advantage of third party libraries:
 |HAVE_BZIP2         |     bzlib.h     |    ZIP / Bzip2              |
 |HAVE_LIBLZMA       |     lzma.h      |    ZIP / LZMA, XZ(LZMA2)    |
 |HAVE_7Z            |     7z.h        |    7Z* / LZMA, LZMA2, BCJ   |
-|_7ZIP_PPMD_SUPPORT |                 |    7Z* / PPMd               |
+|_7ZIP_PPMD_SUPPPORT |                 |    7Z* / PPMd               |
 
 Make sure the required headers are present in the include path.
 

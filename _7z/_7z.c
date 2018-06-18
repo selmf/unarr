@@ -1,24 +1,24 @@
-/* Copyright 2015 the unarr project authors (see AUTHORS file).
+/* Copyright 2018 the unarr project authors (see AUTHORS file).
    License: LGPLv3 */
 
 #include "_7z.h"
 
 #ifdef HAVE_7Z
 
-static void *gSzAlloc_Alloc(void *self, size_t size) { (void)self; return malloc(size); }
-static void gSzAlloc_Free(void *self, void *ptr) { (void)self; free(ptr); }
+static void *gSzAlloc_Alloc(ISzAllocPtr self, size_t size) { (void)self; return malloc(size); }
+static void gSzAlloc_Free(ISzAllocPtr self, void *ptr) { (void)self; free(ptr); }
 static ISzAlloc gSzAlloc = { gSzAlloc_Alloc, gSzAlloc_Free };
 
-static SRes CSeekStream_Read(void *p, void *data, size_t *size)
+static SRes CSeekStream_Read(const ISeekInStream *p, void *data, size_t *size)
 {
-    struct CSeekStream *stm = p;
+    struct CSeekStream *stm = (struct CSeekStream *) p;
     *size = ar_read(stm->stream, data, *size);
     return SZ_OK;
 }
 
-static SRes CSeekStream_Seek(void *p, Int64 *pos, ESzSeek origin)
+static SRes CSeekStream_Seek(const ISeekInStream *p, Int64 *pos, ESzSeek origin)
 {
-    struct CSeekStream *stm = p;
+    struct CSeekStream *stm = (struct CSeekStream *) p;
     if (!ar_seek(stm->stream, *pos, (int)origin))
         return SZ_ERROR_FAIL;
     *pos = ar_tell(stm->stream);
@@ -33,6 +33,7 @@ static void CSeekStream_CreateVTable(struct CSeekStream *in_stream, ar_stream *s
 }
 
 #ifndef USE_7Z_CRC32
+UInt32 MY_FAST_CALL CrcCalc(const void *data, size_t size);
 UInt32 MY_FAST_CALL CrcCalc(const void *data, size_t size)
 {
     return ar_crc32(0, data, size);
@@ -52,27 +53,29 @@ static const char *_7z_get_name(ar_archive *ar);
 static bool _7z_parse_entry(ar_archive *ar, off64_t offset)
 {
     ar_archive_7z *_7z = (ar_archive_7z *)ar;
-    const CSzFileItem *item = _7z->data.db.Files + offset;
+    //const CSzFileItem *item = _7z->data.db.PackPositions + offset;
 
-    if (offset < 0 || offset > _7z->data.db.NumFiles) {
-        warn("Offsets must be between 0 and %u", _7z->data.db.NumFiles);
+    if (offset < 0 || offset > _7z->data.NumFiles) {
+        warn("Offsets must be between 0 and %u", _7z->data.NumFiles);
         return false;
     }
-    if (offset == _7z->data.db.NumFiles) {
+    if (offset == _7z->data.NumFiles) {
         ar->at_eof = true;
         return false;
     }
 
     ar->entry_offset = offset;
     ar->entry_offset_next = offset + 1;
-    ar->entry_size_uncompressed = (size_t)item->Size;
-    ar->entry_filetime = item->MTimeDefined ? (time64_t)(item->MTime.Low | ((time64_t)item->MTime.High << 32)) : 0;
-
+    ar->entry_size_uncompressed = (size_t)SzArEx_GetFileSize(&_7z->data, offset);
+    ar->entry_filetime = SzBitWithVals_Check(&_7z->data.MTime, offset) ?
+                          (time64_t)(_7z->data.MTime.Vals[offset].Low |
+                          ((time64_t)_7z->data.MTime.Vals[offset].High << 32))
+                          : 0;
     free(_7z->entry_name);
     _7z->entry_name = NULL;
     _7z->uncomp.initialized = false;
 
-    if (item->IsDir) {
+    if (SzArEx_IsDir(&_7z->data, offset)) {
         log("Skipping directory entry \"%s\"", _7z_get_name(ar));
         return _7z_parse_entry(ar, offset + 1);
     }
@@ -83,7 +86,7 @@ static bool _7z_parse_entry(ar_archive *ar, off64_t offset)
 static char *SzArEx_GetFileNameUtf8(const CSzArEx *p, UInt32 fileIndex)
 {
     size_t len = p->FileNameOffsets[fileIndex + 1] - p->FileNameOffsets[fileIndex];
-    const Byte *src = p->FileNames.data + p->FileNameOffsets[fileIndex] * 2;
+    const Byte *src = p->FileNames + p->FileNameOffsets[fileIndex] * 2;
     const Byte *srcEnd = src + len * 2;
     size_t size = len * 3;
     char *str, *out;
@@ -125,7 +128,7 @@ static bool _7z_uncompress(ar_archive *ar, void *buffer, size_t buffer_size)
 
     if (!uncomp->initialized) {
         /* TODO: this uncompresses all data for solid compressions */
-        SRes res = SzArEx_Extract(&_7z->data, &_7z->look_stream.s, (UInt32)ar->entry_offset, &uncomp->folder_index, &uncomp->buffer, &uncomp->buffer_size, &uncomp->offset, &uncomp->bytes_left, &gSzAlloc, &gSzAlloc);
+        SRes res = SzArEx_Extract(&_7z->data, &_7z->look_stream.vt, (UInt32)ar->entry_offset, &uncomp->folder_index, &uncomp->buffer, &uncomp->buffer_size, &uncomp->offset, &uncomp->bytes_left, &gSzAlloc, &gSzAlloc);
         if (res != SZ_OK) {
             warn("Failed to extract file at index %" PRIi64 " (failed with error %d)", ar->entry_offset, res);
             return false;
@@ -163,16 +166,19 @@ ar_archive *ar_open_7z_archive(ar_stream *stream)
 
     _7z = (ar_archive_7z *)ar;
     CSeekStream_CreateVTable(&_7z->in_stream, stream);
-    LookToRead_CreateVTable(&_7z->look_stream, False);
+    LookToRead2_CreateVTable(&_7z->look_stream, False);
     _7z->look_stream.realStream = &_7z->in_stream.super;
-    LookToRead_Init(&_7z->look_stream);
+    _7z->look_stream.buf = ISzAlloc_Alloc(&gSzAlloc, 1 << 18);
+    _7z->look_stream.bufSize = 1 << 18;
+    LookToRead2_Init(&_7z->look_stream);
+
 
 #ifdef USE_7Z_CRC32
     CrcGenerateTable();
 #endif
 
     SzArEx_Init(&_7z->data);
-    res = SzArEx_Open(&_7z->data, &_7z->look_stream.s, &gSzAlloc, &gSzAlloc);
+    res = SzArEx_Open(&_7z->data, &_7z->look_stream.vt, &gSzAlloc, &gSzAlloc);
     if (res != SZ_OK) {
         if (res != SZ_ERROR_NO_ARCHIVE)
             warn("Invalid 7z archive (failed with error %d)", res);

@@ -1,8 +1,10 @@
 # (lib)unarr changelog
 
 ## 1.0.2 - (unreleased)
+
 ### Changed
-* Update lzma sdk to v. 18.05
+* Update LZMA SDK code to version 18.05
+* Restore support for 7z archive extraction (using LZMA SDK 18.05)
 * Convert source to use LF line endings
 
 ## 1.0.1 - 2017-11-04
