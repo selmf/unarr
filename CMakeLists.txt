@@ -15,6 +15,7 @@ endif()
 
 # Build options
 option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library" ON)
+option(ENABLE_7Z "Build with 7z support" OFF)
 
 # Build target
 add_library(unarr
@@ -98,6 +99,33 @@ if(ZLIB_FOUND)
   target_compile_definitions(unarr PRIVATE -DHAVE_ZLIB)
   # Add zlib to libunarr.pc Requires.private
   set(PROJECT_REQUIRES_PRIVATE "${PROJECT_REQUIRES_PRIVATE} zlib")
+endif()
+
+if(ENABLE_7Z)
+  target_sources(unarr PRIVATE
+    lzmasdk/7z.h
+    lzmasdk/7zArcIn.c
+    lzmasdk/7zBuf.h
+    lzmasdk/7zBuf.c
+    lzmasdk/7zDec.c
+    lzmasdk/7zStream.c
+    lzmasdk/Bcj2.h
+    lzmasdk/Bcj2.c
+    lzmasdk/Bra.c
+    lzmasdk/Bra.h
+    lzmasdk/Bra86.c
+    lzmasdk/BraIA64.c
+    lzmasdk/7zCrc.h
+    lzmasdk/Delta.h
+    lzmasdk/Delta.c
+    lzmasdk/Lzma2Dec.h
+    lzmasdk/Lzma2Dec.c)
+    if(LIBLZMA_FOUND)
+      target_sources(unarr PRIVATE
+        lzmasdk/LzmaDec.h
+        lzmasdk/LzmaDec.c)
+    endif()
+target_compile_definitions(unarr PRIVATE -DHAVE_7Z -D_7ZIP_PPMD_SUPPPORT)
 endif()
 
 # Compiler specific settings

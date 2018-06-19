@@ -8,7 +8,7 @@
 
 #include "../lzmasdk/7zTypes.h"
 #ifdef HAVE_7Z
-#include <7z.h>
+#include "../lzmasdk/7z.h"
 #endif
 
 typedef struct ar_archive_7z_s ar_archive_7z;
@@ -39,5 +39,9 @@ struct ar_archive_7z_s {
     char *entry_name;
     struct ar_archive_7z_uncomp uncomp;
 };
+
+#ifndef USE_7Z_CRC32
+UInt32 MY_FAST_CALL CrcCalc(const void *data, size_t size);
+#endif
 
 #endif

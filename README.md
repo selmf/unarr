@@ -46,6 +46,10 @@ description for embedded builds.
 
 >cmake .. -DBUILD_SHARED_LIBS=OFF
 
+... with 7z support
+
+>cmake .. -DENABLE_7Z=ON
+
 Install
 
 >make install  
@@ -83,12 +87,8 @@ Unarr was written for comic book archives, so it currently doesn't support:
 
 ### 7z support
 
-7z support is currently broken. This is due to two problems:
+7z support is currently limited and has to be explicitly enabled at build time.
 
-1. The version of the LZMA SDK used in the 7z extraction code is outdated and
-no longer compatible with the LZMA code used in the other formats
-2. The ANSI-C based 7z extraction code provided by the LZMA SDK has a known
-performance issue that limits it's usefullness for large files with solid
-compression (see https://github.com/zeniko/unarr/issues/4).
+This is due to a known performance problem in the ANSI-C based 7z extraction code provided by the LZMA SDK that limits its usefulness for large files with solid compression (see https://github.com/zeniko/unarr/issues/4).
 
-Fixing these problems requires a partial rewrite of the code involved.
+Fixing this problem requires a partial rewrite of the lzma sdk code involved.

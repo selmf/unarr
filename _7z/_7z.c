@@ -33,7 +33,6 @@ static void CSeekStream_CreateVTable(struct CSeekStream *in_stream, ar_stream *s
 }
 
 #ifndef USE_7Z_CRC32
-UInt32 MY_FAST_CALL CrcCalc(const void *data, size_t size);
 UInt32 MY_FAST_CALL CrcCalc(const void *data, size_t size)
 {
     return ar_crc32(0, data, size);
