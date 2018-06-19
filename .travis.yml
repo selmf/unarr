@@ -10,6 +10,6 @@ before_install:
 before_script:
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake .. -DENABLE_7Z=ON
 
 script: make
