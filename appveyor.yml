@@ -6,13 +6,11 @@ platform:
   - x64
 
 before_build:
+  - cd %APPVEYOR_BUILD_FOLDER%
   - md build
   - cd build
   - cmake .. -DENABLE_7Z=ON -G"Visual Studio 14 2015"
 
 build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%
   - cmake --build build
-
-artifacts:
-  - path: unarr.dll
-  - path: unarr.h
