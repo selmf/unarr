@@ -177,7 +177,11 @@ static bool zip_init_uncompress_lzma(struct ar_archive_zip_uncomp *uncomp)
 {
     lzma_stream strm = LZMA_STREAM_INIT;
     uncomp->state.lzmastream = strm;
-    static const lzma_allocator allocator = { gLzma_Alloc, gLzma_Free, NULL };
+    #if LZMA_VERSION_MAJOR > 5 || (LZMA_VERSION_MAJOR == 5 && LZMA_VERSION_MINOR >= 2)
+      static const lzma_allocator allocator = { gLzma_Alloc, gLzma_Free, NULL };
+    #else
+      static lzma_allocator allocator = { gLzma_Alloc, gLzma_Free, NULL };
+    #endif
     uncomp->state.lzmastream.allocator = &allocator;
     return true;
 }
