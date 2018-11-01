@@ -75,7 +75,7 @@ static SRes SzBitUi32s_Alloc(CSzBitUi32s *p, size_t num, ISzAllocPtr alloc)
   return SZ_OK;
 }
 
-void SzBitUi32s_Free(CSzBitUi32s *p, ISzAllocPtr alloc)
+static void SzBitUi32s_Free(CSzBitUi32s *p, ISzAllocPtr alloc)
 {
   ISzAlloc_Free(alloc, p->Defs); p->Defs = NULL;
   ISzAlloc_Free(alloc, p->Vals); p->Vals = NULL;
@@ -83,7 +83,7 @@ void SzBitUi32s_Free(CSzBitUi32s *p, ISzAllocPtr alloc)
 
 #define SzBitUi64s_Init(p) { (p)->Defs = NULL; (p)->Vals = NULL; }
 
-void SzBitUi64s_Free(CSzBitUi64s *p, ISzAllocPtr alloc)
+static void SzBitUi64s_Free(CSzBitUi64s *p, ISzAllocPtr alloc)
 {
   ISzAlloc_Free(alloc, p->Defs); p->Defs = NULL;
   ISzAlloc_Free(alloc, p->Vals); p->Vals = NULL;
