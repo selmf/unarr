@@ -273,8 +273,10 @@ static struct RARFilter *rar_create_filter(struct RARProgramCode *prog, const ui
     filter->prog = prog;
     filter->globaldatalen = globaldatalen > RARProgramSystemGlobalSize ? globaldatalen : RARProgramSystemGlobalSize;
     filter->globaldata = calloc(1, filter->globaldatalen);
-    if (!filter->globaldata)
+    if (!filter->globaldata) {
+        free(filter);
         return NULL;
+        }
     if (globaldata)
         memcpy(filter->globaldata, globaldata, globaldatalen);
     if (registers)
