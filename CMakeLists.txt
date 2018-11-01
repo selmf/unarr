@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 
-project(unarr VERSION 1.0.0 LANGUAGES C)
+project(unarr VERSION 1.1.0 LANGUAGES C)
 set(PROJECT_DESCRIPTION
   "A decompression library for rar, tar and zip files.")
 
