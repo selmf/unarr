@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/selmf/unarr.svg?branch=master)](https://travis-ci.org/selmf/unarr)
+[![Build status](https://ci.appveyor.com/api/projects/status/m0jragl23k02r83b?svg=true)](https://ci.appveyor.com/project/selmf/unarr)
+
 # (lib)unarr
 
 **(lib)unarr** is a decompression library for RAR, TAR, ZIP and 7z* archives.
@@ -89,6 +92,8 @@ Unarr was written for comic book archives, so it currently doesn't support:
 
 7z support is currently limited and has to be explicitly enabled at build time.
 
-This is due to a known performance problem in the ANSI-C based 7z extraction code provided by the LZMA SDK that limits its usefulness for large files with solid compression (see https://github.com/zeniko/unarr/issues/4).
+This is due to a known performance problem in the ANSI-C based 7z extraction code
+provided by the LZMA SDK that limits its usefulness for large files with solid
+compression (see https://github.com/zeniko/unarr/issues/4).
 
 Fixing this problem requires a partial rewrite of the lzma sdk code involved.
