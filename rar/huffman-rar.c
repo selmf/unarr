@@ -1,4 +1,4 @@
-/* Copyright 2015 the unarr project authors (see AUTHORS file).
+/* Copyright 2018 the unarr project authors (see AUTHORS file).
    License: LGPLv3 */
 
 /* adapted from https://code.google.com/p/theunarchiver/source/browse/XADMaster/XADPrefixCode.m */
@@ -19,10 +19,17 @@ bool rar_new_node(struct huffman_code *code)
             warn("OOM during decompression");
             return false;
         }
-        memcpy(new_tree, code->tree, code->capacity * sizeof(*code->tree));
-        free(code->tree);
+        if (code->tree) {
+            memcpy(new_tree, code->tree, code->capacity * sizeof(*code->tree));
+            free(code->tree);
+        }
         code->tree = new_tree;
         code->capacity = new_capacity;
+    }
+    /* if we have no code->tree at this point something went wrong */
+    if (!code->tree) {
+        warn("Invalid huffman code tree, aborting");
+        return false;
     }
     code->tree[code->numentries].branches[0] = -1;
     code->tree[code->numentries].branches[1] = -2;
