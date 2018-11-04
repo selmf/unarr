@@ -1,4 +1,4 @@
-/* Copyright 2015 the unarr project authors (see AUTHORS file).
+/* Copyright 2018 the unarr project authors (see AUTHORS file).
    License: LGPLv3 */
 
 #include "rar.h"
@@ -540,8 +540,15 @@ bool rar_parse_filter(ar_archive_rar *rar, const uint8_t *bytes, uint16_t length
         num = filters->lastfilternum;
 
     prog = filters->progs;
-    for (i = 0; i < num; i++)
-        prog = prog->next;
+    for (i = 0; i < num; i++) {
+        if (prog) {
+            prog = prog->next;
+        }
+        else {
+            warn("Invalid filter programm");
+            return false;
+        }
+    }
     if (prog)
         prog->usagecount++;
 
