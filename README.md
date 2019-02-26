@@ -49,7 +49,7 @@ description for embedded builds.
 
 >cmake .. -DBUILD_SHARED_LIBS=OFF
 
-... with 7z support
+... with 7z support (see note below)
 
 >cmake .. -DENABLE_7Z=ON
 
@@ -61,11 +61,12 @@ specifying:
 
 Install
 
->make install  
+>make install
 
 #### Embedded build
 
-Make sure your compiler is C99 compatible, grab the source code, copy it into your project and adjust your build system accordingly.
+Make sure your compiler is C99 compatible, grab the source code, copy it into
+your project and adjust your build system accordingly.
 
 You can define the following symbols to take advantage of third party libraries:
 
@@ -74,8 +75,8 @@ You can define the following symbols to take advantage of third party libraries:
 |HAVE_ZLIB          |     zlib.h      |  faster CRC-32 and Deflate  |
 |HAVE_BZIP2         |     bzlib.h     |    ZIP / Bzip2              |
 |HAVE_LIBLZMA       |     lzma.h      |    ZIP / LZMA, XZ(LZMA2)    |
-|HAVE_7Z            |     7z.h        |    7Z* / LZMA, LZMA2, BCJ   |
-|_7ZIP_PPMD_SUPPPORT |                 |    7Z* / PPMd               |
+|HAVE_7Z            |     7z.h        |    7Z / LZMA, LZMA2, BCJ    |
+|_7ZIP_PPMD_SUPPPORT|                 |    7Z / PPMd                |
 
 Make sure the required headers are present in the include path.
 
@@ -86,7 +87,7 @@ Make sure the required headers are present in the include path.
 Check [unarr.h](unarr.h) and [unarr-test](test/main.c) to get a general feel
 for the api and usage.
 
-To build the unarr-test sample application, use
+To build the unarr-test sample application, use:
 
 > cmake .. -DBUILD_SAMPLES=ON
 
@@ -102,8 +103,9 @@ Unarr was written for comic book archives, so it currently doesn't support:
 
 7z support is currently limited and has to be explicitly enabled at build time.
 
-This is due to a known performance problem in the ANSI-C based 7z extraction code
-provided by the LZMA SDK that limits its usefulness for large files with solid
-compression (see https://github.com/zeniko/unarr/issues/4).
+This is due to a known performance problem in the ANSI-C based 7z extraction
+code provided by the LZMA SDK that limits its usefulness for large files with
+solid compression (see https://github.com/zeniko/unarr/issues/4).
 
-Fixing this problem requires a partial rewrite of the lzma sdk code involved.
+Fixing this problem will require modification or replacement of the LZMA SDK
+code used.

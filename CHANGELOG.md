@@ -7,12 +7,15 @@
 * Build options for disabling system library detection (bzip2, liblzma, zlib)
 
 ### Changed
-* Update LZMA SDK code to version 18.05
-* Restore support for 7z archive extraction (using LZMA SDK 18.05)
-* Convert source to use LF line endings
+* Update LZMA SDK code to version 19.00
+* Restore support for 7z archive extraction (using an embedded subset of
+  LZMA SDK 19.00)
+* Convert source to LF line endings
 
 ### Fixed
 * Fixed a possible memleak in rar filter code found by clang static analyzer
+* Fixed some edge cases that could lead to nullpointer dereferences and/or
+  undefined behavior in rar extraction code
 
 ## 1.0.1 - 2017-11-04
 This is a bugfix release.
