@@ -53,6 +53,12 @@ description for embedded builds.
 
 >cmake .. -DENABLE_7Z=ON
 
+By default, (lib)unarr will try to detect and use system libraries like bzip2,
+xz/LibLZMA and zlib. If this is undesirable, you can override this behavior by
+specifying:
+
+>cmake .. -DUSE_SYSTEM_BZ2=OFF -DUSE_SYSTEM_LZMA=OFF -DUSE_SYSTEM_ZLIB=OFF
+
 Install
 
 >make install  

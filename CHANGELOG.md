@@ -4,6 +4,7 @@
 
 ### Added
 * Support building unarr-test using CMake
+* Build options for disabling system library detection (bzip2, liblzma, zlib)
 
 ### Changed
 * Update LZMA SDK code to version 18.05
