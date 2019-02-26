@@ -15,6 +15,7 @@ endif()
 
 # Build options
 option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library" ON)
+option(BUILD_SAMPLES "Build unarr-test executable" OFF)
 option(ENABLE_7Z "Build with 7z support" OFF)
 
 # Build target
@@ -127,6 +128,13 @@ if(ENABLE_7Z)
         lzmasdk/LzmaDec.c)
     endif()
 target_compile_definitions(unarr PRIVATE -DHAVE_7Z -D_7ZIP_PPMD_SUPPPORT)
+endif()
+
+if(BUILD_SAMPLES)
+  add_executable(unarr-test
+                test/main.c)
+  add_dependencies(unarr-test unarr)
+  target_link_libraries(unarr-test unarr)
 endif()
 
 # Compiler specific settings

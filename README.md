@@ -80,6 +80,10 @@ Make sure the required headers are present in the include path.
 Check [unarr.h](unarr.h) and [unarr-test](test/main.c) to get a general feel
 for the api and usage.
 
+To build the unarr-test sample application, use
+
+> cmake .. -DBUILD_SAMPLES=ON
+
 ## Limitations
 
 Unarr was written for comic book archives, so it currently doesn't support:

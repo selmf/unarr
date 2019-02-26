@@ -2,6 +2,9 @@
 
 ## 1.1.0 - (unreleased)
 
+### Added
+* Support building unarr-test using CMake
+
 ### Changed
 * Update LZMA SDK code to version 18.05
 * Restore support for 7z archive extraction (using LZMA SDK 18.05)
