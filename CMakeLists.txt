@@ -29,6 +29,7 @@ add_library(unarr
   common/stream.c
   common/unarr.c
   lzmasdk/7zTypes.h
+  lzmasdk/Compiler.h
   lzmasdk/CpuArch.h
   lzmasdk/Ppmd.h
   lzmasdk/Ppmd7.h

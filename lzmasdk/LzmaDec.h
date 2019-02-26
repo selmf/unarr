@@ -74,7 +74,7 @@ typedef struct
 } CLzmaDec;
 
 #define LzmaDec_Construct(p) { (p)->dic = NULL; (p)->probs = NULL; }
-void LzmaDec_InitDicAndState(CLzmaDec *p, Bool initDic, Bool initState);
+
 void LzmaDec_Init(CLzmaDec *p);
 
 /* There are two types of LZMA streams:
