@@ -2,6 +2,9 @@
 
 ## 1.1.0 (unreleased)
 
+### Added
+* libFuzzer target for coverage-guided fuzz testing (Wang Xin-yu (王昕宇))
+
 ### Changed
 * Build 7z support by default
 

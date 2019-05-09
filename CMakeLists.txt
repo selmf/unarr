@@ -23,6 +23,17 @@ option(USE_SYSTEM_LZMA "Build with system lzma/xz if possible" ON)
 option(USE_SYSTEM_ZLIB "Build with system zlib if possible" ON)
 option(USE_ZLIB_CRC "Use zlib crc32" OFF)
 
+option(BUILD_FUZZER "Build libFuzzer coverage-guided fuzzer test" OFF)
+
+if(BUILD_FUZZER)
+  if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+    set(sanitize_opts "-fsanitize=fuzzer,address,undefined")
+    enable_testing()
+    add_subdirectory(test)
+  else()
+    error("Fuzzer build requires a Clang compiler")
+  endif()
+endif()
 
 # Build target
 add_library(unarr
@@ -164,7 +175,7 @@ if(ENABLE_7Z)
 target_compile_definitions(unarr PRIVATE -DHAVE_7Z -D_7ZIP_PPMD_SUPPPORT)
 endif()
 
-if(BUILD_SAMPLES)
+if(BUILD_SAMPLES AND NOT BUILD_FUZZER)
   add_executable(unarr-test
                 test/main.c)
   add_dependencies(unarr-test unarr)
@@ -178,25 +189,34 @@ if(UNIX OR MINGW OR MSYS)
                     -Wstrict-prototypes -Wmissing-prototypes
                     -Werror-implicit-function-declaration
                     $<$<CONFIG:Release>:-fomit-frame-pointer>
-                    $<$<OR:$<C_COMPILER_ID:Clang>,$<C_COMPILER_ID:AppleClang>>:
+                    $<$<C_COMPILER_ID:Clang,AppleClang>:
                     -Wno-missing-field-initializers>
                     -flto)
+  if (BUILD_FUZZER)
+    target_compile_options(unarr PUBLIC "${sanitize_opts}")
+    target_compile_definitions(unarr PRIVATE -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
+  endif()
+
   target_compile_definitions(unarr PRIVATE -D_FILE_OFFSET_BITS=64)
 
   # Linker flags
 
-  # Clang linker needs -flto too when doing lto
-  if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    set_target_properties(unarr PROPERTIES LINK_FLAGS
-                          "-Wl,--no-undefined -Wl,--as-needed -flto")
-  # Apple ld uses different syntax for undefined symbol check
-  elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
-    set_target_properties(unarr PROPERTIES LINK_FLAGS
-                          "-Wl,-undefined,error -flto")
+  if(BUILD_FUZZER)
+    set(linker_opts "${sanitize_opts}")
   else()
-    set_target_properties(unarr PROPERTIES LINK_FLAGS
-                          "-Wl,--no-undefined -Wl,--as-needed")
+    if("${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
+      set(linker_opts "-Wl,-undefined,error")
+    else()
+      set(linker_opts "-Wl,--as-needed -Wl,--no-undefined")
+    endif()
   endif()
+
+  # Clang linker needs -flto too when doing lto
+  if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
+    set (linker_opts "${linker_opts} -flto")
+  endif()
+
+  set_target_properties(unarr PROPERTIES LINK_FLAGS "${linker_opts}")
 endif()
 
 if(MSVC)
