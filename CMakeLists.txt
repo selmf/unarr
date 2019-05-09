@@ -21,6 +21,19 @@ option(USE_SYSTEM_BZ2 "Build with system bzip2 if possible" ON)
 option(USE_SYSTEM_LZMA "Build with system lzma/xz if possible" ON)
 option(USE_SYSTEM_ZLIB "Build with system zlib if possible" ON)
 
+set(sanitize_opts "")
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+    option(FUZZER_TEST "Build fuzzer test if possible" OFF)
+
+    if(FUZZER_TEST)
+        enable_testing()
+        set(ENABLE_7Z ON)
+        set(sanitize_opts "-fsanitize=fuzzer,address")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${sanitize_opts}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${sanitize_opts}")
+    endif()
+endif()
+
 # Build target
 add_library(unarr
   _7z/_7z.h
@@ -162,8 +175,14 @@ if(UNIX OR MINGW OR MSYS)
 
   # Clang linker needs -flto too when doing lto
   if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+    if(FUZZER_TEST)
+        set(link_flags "-Wl,--as-needed ${sanitize_opts} -flto")
+    else()
+        set(link_flags "-Wl,--no-undefined -Wl,--as-needed -flto")
+    endif()
+
     set_target_properties(unarr PROPERTIES LINK_FLAGS
-                          "-Wl,--no-undefined -Wl,--as-needed -flto")
+                          "${link_flags}")
   # Apple ld uses different syntax for undefined symbol check
   elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
     set_target_properties(unarr PROPERTIES LINK_FLAGS
@@ -194,3 +213,5 @@ install(TARGETS unarr
 install(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib${PROJECT_NAME}.pc
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+
+add_subdirectory(test)
