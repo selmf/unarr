@@ -7,6 +7,15 @@
 #define inline __inline
 #endif
 
+#define BUF_SIZE 512
+
+#ifndef min
+#define min(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b; })
+#endif
+
 static inline uint16_t uint16le(unsigned char *data) { return data[0] | data[1] << 8; }
 static inline uint32_t uint32le(unsigned char *data) { return data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24; }
 static inline uint64_t uint64le(unsigned char *data) { return (uint64_t)uint32le(data) | (uint64_t)uint32le(data + 4) << 32; }
@@ -106,7 +115,7 @@ bool zip_parse_local_file_entry(ar_archive_zip *zip, struct zip_entry *entry)
 
 off64_t zip_find_next_local_file_entry(ar_stream *stream, off64_t offset)
 {
-    uint8_t data[512];
+    uint8_t data[BUF_SIZE];
     int count, i;
 
     if (!ar_seek(stream, offset, SEEK_SET))
@@ -118,7 +127,7 @@ off64_t zip_find_next_local_file_entry(ar_stream *stream, off64_t offset)
             if (uint32le(data + i) == SIG_LOCAL_FILE_HEADER)
                 return offset + i;
         }
-        memmove(data, data + count - 4, count);
+        memmove(data, data + count - 4, min(count, BUF_SIZE - (count-4)));
         offset += count - 4;
         count = (int)ar_read(stream, data + 4, sizeof(data) - 4) + 4;
     }
