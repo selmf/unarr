@@ -181,6 +181,7 @@ ar_archive *ar_open_7z_archive(ar_stream *stream)
     if (res != SZ_OK) {
         if (res != SZ_ERROR_NO_ARCHIVE)
             warn("Invalid 7z archive (failed with error %d)", res);
+        ISzAlloc_Free(&gSzAlloc, _7z->look_stream.buf);
         free(ar);
         return NULL;
     }
