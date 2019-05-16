@@ -268,6 +268,16 @@ off64_t zip_find_end_of_central_directory(ar_stream *stream)
     return -1;
 }
 
+const char *ar_entry_zip_get_raw_name(ar_archive *ar)
+{
+    ar_archive_zip *zip = (ar_archive_zip *)ar;
+    if (zip->entry.raw_name)
+        return zip->entry.raw_name;
+
+    zip_get_name(ar);
+    return zip->entry.raw_name;
+}
+
 const char *zip_get_name(ar_archive *ar)
 {
     ar_archive_zip *zip = (ar_archive_zip *)ar;
@@ -299,6 +309,7 @@ const char *zip_get_name(ar_archive *ar)
         }
         name[entry.namelen] = '\0';
 
+        zip->entry.raw_name = strdup(name);
         if ((entry.flags & (1 << 11))) {
             zip->entry.name = name;
         }
