@@ -80,6 +80,7 @@ struct ar_archive_zip_entry {
     uint16_t flags;
     uint32_t crc;
     char *name;
+    char *raw_name;
     uint32_t dosdate;
 };
 

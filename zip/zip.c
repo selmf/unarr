@@ -7,6 +7,7 @@ static void zip_close(ar_archive *ar)
 {
     ar_archive_zip *zip = (ar_archive_zip *)ar;
     free(zip->entry.name);
+    free(zip->entry.raw_name);
     zip_clear_uncompress(&zip->uncomp);
 }
 
@@ -45,6 +46,8 @@ static bool zip_parse_local_entry(ar_archive *ar, off64_t offset)
     zip->entry.crc = entry.crc;
     free(zip->entry.name);
     zip->entry.name = NULL;
+    free(zip->entry.raw_name);
+    zip->entry.raw_name = NULL;
     zip->entry.dosdate = entry.dosdate;
 
     zip->progress.crc = 0;
@@ -93,6 +96,8 @@ static bool zip_parse_entry(ar_archive *ar, off64_t offset)
     zip->entry.crc = entry.crc;
     free(zip->entry.name);
     zip->entry.name = NULL;
+    free(zip->entry.raw_name);
+    zip->entry.raw_name = NULL;
     zip->entry.dosdate = entry.dosdate;
 
     zip->progress.crc = 0;

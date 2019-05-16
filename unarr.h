@@ -89,6 +89,9 @@ UNARR_EXPORT bool ar_at_eof(ar_archive *ar);
 
 /* returns the name of the current entry as UTF-8 string; this pointer is only valid until the next call to ar_parse_entry; returns NULL on failure */
 UNARR_EXPORT const char *ar_entry_get_name(ar_archive *ar);
+
+/* returns raw zip entry name without encoding convert and slash replace (but only preserve parts before any null terminator, if such invalid terminator inside filename)*/
+UNARR_EXPORT const char *ar_entry_zip_get_raw_name(ar_archive *ar);
 /* returns the stream offset of the current entry for use with ar_parse_entry_at */
 UNARR_EXPORT off64_t ar_entry_get_offset(ar_archive *ar);
 /* returns the total size of uncompressed data of the current entry; read exactly that many bytes using ar_entry_uncompress */
