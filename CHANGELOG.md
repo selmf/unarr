@@ -4,7 +4,7 @@
 
 ### Added
 * Support building unarr-test using CMake
-* Build options for disabling system library detection (bzip2, liblzma, zlib)
+* Build options for disabling system library usage/detection (bzip2, liblzma, zlib)
 
 ### Changed
 * Update LZMA SDK code to version 19.00
@@ -16,6 +16,8 @@
 * Fixed a possible memleak in rar filter code found by clang static analyzer
 * Fixed some edge cases that could lead to nullpointer dereferences and/or
   undefined behavior in rar extraction code
+* Fixed out of bonds memmove in zip code
+* Fixed memleak when trying to open an invalid 7z file
 
 ## 1.0.1 - 2017-11-04
 This is a bugfix release.
