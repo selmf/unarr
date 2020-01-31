@@ -5,7 +5,7 @@
 ### Added
 * Support building unarr-test using CMake
 * Build options for disabling system library usage/detection (bzip2, liblzma, zlib)
-
+* Create CMake config-files for downstream integration
 ### Changed
 * Update LZMA SDK code to version 19.00
 * Restore support for 7z archive extraction (using an embedded subset of
