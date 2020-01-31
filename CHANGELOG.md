@@ -18,6 +18,7 @@
   undefined behavior in rar extraction code
 * Fixed out of bonds memmove in zip code
 * Fixed memleak when trying to open an invalid 7z file
+* Fix some minor problems with BZip2 and liblzma not added correctly to pkg-config
 
 ## 1.0.1 - 2017-11-04
 This is a bugfix release.

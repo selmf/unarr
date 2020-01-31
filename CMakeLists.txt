@@ -83,7 +83,7 @@ if(BZIP2_FOUND)
   target_link_libraries(unarr BZip2::BZip2)
   target_compile_definitions(unarr PRIVATE -DHAVE_BZIP2)
   # Bzip2 upstream does not supply a .pc file. Add it to Libs.private.
-  set(PROJECT_LIBS_PRIVATE "-I${BZIP_INCLUDE_DIRS} -l${BZIP2_LIBRARIES}")
+  set(PROJECT_LIBS_PRIVATE "-I${BZIP2_INCLUDE_DIRS} -l${BZIP2_LIBRARIES}")
 endif()
 
 if(USE_SYSTEM_LZMA)
@@ -92,7 +92,7 @@ endif()
 if(LIBLZMA_FOUND)
   target_link_libraries(unarr LibLZMA::LibLZMA)
   target_compile_definitions(unarr PRIVATE -DHAVE_LIBLZMA)
-  set(PROJECT_REQUIRES_PRIVATE "${UNARR_REQUIRES_PRIVATE} liblzma")
+  set(PROJECT_REQUIRES_PRIVATE "${PROJECT_REQUIRES_PRIVATE} liblzma")
 else()
   target_sources(unarr PRIVATE
     lzmasdk/LzmaDec.h
