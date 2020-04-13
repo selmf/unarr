@@ -1,5 +1,8 @@
-[![Build Status](https://travis-ci.org/selmf/unarr.svg?branch=master)](https://travis-ci.org/selmf/unarr)
-[![Build status](https://ci.appveyor.com/api/projects/status/m0jragl23k02r83b?svg=true)](https://ci.appveyor.com/project/selmf/unarr)
+|Build|Status|
+|---|------|
+|Linux|[![Build Status](https://dev.azure.com/licorn0647/licorn/_apis/build/status/selmf.unarr?branchName=master&jobName=MacOS)](https://dev.azure.com/licorn0647/licorn/_build/latest?definitionId=2&branchName=master)|
+|MacOS|[![Build Status](https://dev.azure.com/licorn0647/licorn/_apis/build/status/selmf.unarr?branchName=master&jobName=MacOS)](https://dev.azure.com/licorn0647/licorn/_build/latest?definitionId=2&branchName=master)|
+|Windows|[![Build Status](https://dev.azure.com/licorn0647/licorn/_apis/build/status/selmf.unarr?branchName=master&jobName=Windows)](https://dev.azure.com/licorn0647/licorn/_build/latest?definitionId=2&branchName=master)|
 
 # (lib)unarr
 
@@ -22,8 +25,8 @@ development of unarr, which no longer is maintained.
 [![Packaging status](https://repology.org/badge/vertical-allrepos/unarr.svg)](https://repology.org/metapackage/unarr)
 
 #### From OBS
-[.deb package](https://software.opensuse.org//download.html?project=home%3Aselmf&package=libunarr)  
-[.rpm package](https://software.opensuse.org//download.html?project=home%3Aselmf%3Ayacreader-rpm&package=libunarr)  
+[.deb package](https://software.opensuse.org//download.html?project=home%3Aselmf&package=libunarr)
+[.rpm package](https://software.opensuse.org//download.html?project=home%3Aselmf%3Ayacreader-rpm&package=libunarr)
 
 ### Building from source
 
@@ -40,9 +43,9 @@ description for embedded builds.
 
 #### CMake
 
->mkdir build  
->cd build  
->cmake ..  
+>mkdir build
+>cd build
+>cmake ..
 >make
 
 ... as a static library

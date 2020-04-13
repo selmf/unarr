@@ -2,32 +2,33 @@
 
 trigger:
 - master
+- develop
 
 jobs:
 
 - job: Linux
   pool:
-    vmImage: 'Ubuntu-16.04'
+    vmImage: 'ubuntu-latest'
   steps:
     - script: |
         sudo apt-get install -y zlib1g-dev libbz2-dev liblzma-dev
-        display-name: 'Install dependencies'
+      displayName: 'Install dependencies'
     - task: CMake@1
       inputs:
-        cmakeArgs: '-DENABLE_7Z=ON -DBUILD_SAMPLES=ON'
+        cmakeArgs: '-DENABLE_7Z=ON -DBUILD_SAMPLES=ON ..'
 
 - job: Windows
   pool:
-    vmImage: vs2017-win2016
+    vmImage: 'windows-latest'
   steps:
     - task: CMake@1
       inputs:
-        cmakeArgs: '-DENABLE_7Z=ON -DBUILD_SAMPLES=ON'
+        cmakeArgs: '-DENABLE_7Z=ON -DBUILD_SAMPLES=ON ..'
 
 - job: MacOS
   pool:
-    vmImage: macos-10.14
+    vmImage: 'macOS-latest'
   steps:
     - task: CMake@1
       inputs:
-        cmakeArgs: '-DENABLE_7Z=ON -DBUILD_SAMPLES=ON'
+        cmakeArgs: '-DENABLE_7Z=ON -DBUILD_SAMPLES=ON ..'
