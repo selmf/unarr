@@ -309,7 +309,11 @@ const char *zip_get_name(ar_archive *ar)
         }
         name[entry.namelen] = '\0';
 
-        zip->entry.raw_name = strdup(name);
+        zip->entry.raw_name = malloc(entry.namelen + 1);
+        if (zip->entry.raw_name) {
+            memcpy(zip->entry.raw_name, name, entry.namelen + 1);
+        }
+
         if ((entry.flags & (1 << 11))) {
             zip->entry.name = name;
         }
