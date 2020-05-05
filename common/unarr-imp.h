@@ -54,7 +54,7 @@ void ar_log(const char *prefix, const char *file, int line, const char *msg, ...
 
 typedef void (* ar_archive_close_fn)(ar_archive *ar);
 typedef bool (* ar_parse_entry_fn)(ar_archive *ar, off64_t offset);
-typedef const char *(* ar_entry_get_name_fn)(ar_archive *ar);
+typedef const char *(* ar_entry_get_name_fn)(ar_archive *ar, bool raw);
 typedef bool (* ar_entry_uncompress_fn)(ar_archive *ar, void *buffer, size_t count);
 typedef size_t (* ar_get_global_comment_fn)(ar_archive *ar, void *buffer, size_t count);
 

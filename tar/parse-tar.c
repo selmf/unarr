@@ -171,7 +171,7 @@ bool tar_handle_pax_extended(ar_archive *ar)
     }
     free(data);
 
-    tar_get_name(ar);
+    tar_get_name(ar, false);
     ar->entry_offset = offset;
     ar->entry_size_uncompressed = tar->entry.filesize;
     ar->entry_filetime = tar->entry.mtime;
@@ -219,8 +219,11 @@ bool tar_handle_gnu_longname(ar_archive *ar)
     return true;
 }
 
-const char *tar_get_name(ar_archive *ar)
+const char *tar_get_name(ar_archive *ar, bool raw)
 {
+    if (raw)
+        return NULL;
+
     ar_archive_tar *tar = (ar_archive_tar *)ar;
     if (!tar->entry.name) {
         char *name;

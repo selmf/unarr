@@ -47,7 +47,7 @@ static void _7z_close(ar_archive *ar)
     IAlloc_Free(&gSzAlloc, _7z->uncomp.buffer);
 }
 
-static const char *_7z_get_name(ar_archive *ar);
+static const char *_7z_get_name(ar_archive *ar, bool raw);
 
 static bool _7z_parse_entry(ar_archive *ar, off64_t offset)
 {
@@ -104,8 +104,11 @@ static char *SzArEx_GetFileNameUtf8(const CSzArEx *p, UInt32 fileIndex)
     return str;
 }
 
-static const char *_7z_get_name(ar_archive *ar)
+static const char *_7z_get_name(ar_archive *ar, bool raw)
 {
+    if (raw)
+        return NULL;
+
     ar_archive_7z *_7z = (ar_archive_7z *)ar;
     if (!_7z->entry_name && ar->entry_offset_next && !ar->at_eof) {
         _7z->entry_name = SzArEx_GetFileNameUtf8(&_7z->data, (UInt32)ar->entry_offset);

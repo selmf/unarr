@@ -62,7 +62,12 @@ bool ar_parse_entry_for(ar_archive *ar, const char *entry_name)
 
 const char *ar_entry_get_name(ar_archive *ar)
 {
-    return ar->get_name(ar);
+    return ar->get_name(ar, false);
+}
+
+const char *ar_entry_get_raw_name(ar_archive *ar)
+{
+    return ar->get_name(ar, true);
 }
 
 off64_t ar_entry_get_offset(ar_archive *ar)

@@ -184,8 +184,11 @@ static char *rar_conv_unicode_to_utf8(const char *data, uint16_t len)
 #undef Check
 }
 
-const char *rar_get_name(ar_archive *ar)
+const char *rar_get_name(ar_archive *ar, bool raw)
 {
+    if (raw)
+        return NULL;
+
     ar_archive_rar *rar = (ar_archive_rar *)ar;
     if (!rar->entry.name) {
         unsigned char data[21];
