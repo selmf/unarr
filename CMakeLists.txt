@@ -73,6 +73,12 @@ set_target_properties(unarr PROPERTIES
                       VERSION ${PROJECT_VERSION}
                       SOVERSION ${PROJECT_VERSION_MAJOR})
 
+# Add include directories for build and install
+target_include_directories(unarr PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
+)
+
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(unarr PUBLIC UNARR_IS_SHARED_LIBRARY)
 endif()
