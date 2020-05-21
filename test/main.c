@@ -56,6 +56,9 @@ int main(int argc, char *argv[])
     while (ar_parse_entry(ar)) {
         size_t size = ar_entry_get_size(ar);
         printf("%02d. %s (@%" PRIi64 ")\n", entry_count++, ar_entry_get_name(ar), ar_entry_get_offset(ar));
+        const char *raw_filename = ar_entry_get_raw_name(ar);
+        if (raw_filename)
+            printf("Raw filename %s \n", raw_filename);
         while (size > 0) {
             unsigned char buffer[1024];
             size_t count = size < sizeof(buffer) ? size : sizeof(buffer);
