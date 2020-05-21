@@ -6,11 +6,15 @@
 * Support building unarr-test using CMake
 * Build options for disabling system library usage/detection (bzip2, liblzma, zlib)
 * Create CMake config-files for downstream integration
+* New ar_entry_get_raw_name function for getting raw zip filenames (usefull for faulty
+  zip archives with non-spec filename encodings)
+
 ### Changed
 * Update LZMA SDK code to version 19.00
 * Restore support for 7z archive extraction (using an embedded subset of
   LZMA SDK 19.00)
 * Convert source to LF line endings
+* Increase UNARR_API_VERSION to 110
 
 ### Fixed
 * Fixed a possible memleak in rar filter code found by clang static analyzer
