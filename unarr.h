@@ -1,4 +1,4 @@
-/* Copyright 2015 the unarr project authors (see AUTHORS file).
+/* Copyright 2020 the unarr project authors (see AUTHORS file).
    License: LGPLv3 */
 
 #ifndef unarr_h
@@ -42,7 +42,7 @@ extern "C" {
 typedef int64_t off64_t;
 typedef int64_t time64_t;
 
-#define UNARR_API_VERSION 100
+#define UNARR_API_VERSION 110
 
 /***** common/stream *****/
 
