@@ -43,28 +43,38 @@ description for embedded builds.
 
 #### CMake
 
->mkdir build
->cd build
->cmake ..
->make
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
 
 ... as a static library
 
->cmake .. -DBUILD_SHARED_LIBS=OFF
+```bash
+cmake .. -DBUILD_SHARED_LIBS=OFF
+```
 
 ... with 7z support (see note below)
 
->cmake .. -DENABLE_7Z=ON
+```bash
+cmake .. -DENABLE_7Z=ON
+```
 
 By default, (lib)unarr will try to detect and use system libraries like bzip2,
 xz/LibLZMA and zlib. If this is undesirable, you can override this behavior by
 specifying:
 
->cmake .. -DUSE_SYSTEM_BZ2=OFF -DUSE_SYSTEM_LZMA=OFF -DUSE_SYSTEM_ZLIB=OFF
+```bash
+cmake .. -DUSE_SYSTEM_BZ2=OFF -DUSE_SYSTEM_LZMA=OFF -DUSE_SYSTEM_ZLIB=OFF
+```
 
 Install
 
->make install
+```bash
+make install
+```
 
 #### Embedded build
 
@@ -92,7 +102,9 @@ for the api and usage.
 
 To build the unarr-test sample application, use:
 
-> cmake .. -DBUILD_SAMPLES=ON
+```bash
+cmake .. -DBUILD_SAMPLES=ON
+```
 
 ## Limitations
 
