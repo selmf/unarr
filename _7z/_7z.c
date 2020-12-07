@@ -75,7 +75,7 @@ static bool _7z_parse_entry(ar_archive *ar, off64_t offset)
     _7z->uncomp.initialized = false;
 
     if (SzArEx_IsDir(&_7z->data, offset)) {
-        log("Skipping directory entry \"%s\"", _7z_get_name(ar));
+        log("Skipping directory entry \"%s\"", _7z_get_name(ar, false));
         return _7z_parse_entry(ar, offset + 1);
     }
 

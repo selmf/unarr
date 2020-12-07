@@ -40,7 +40,7 @@ static bool tar_parse_entry(ar_archive *ar, off64_t offset)
     case TYPE_FILE_OLD:
         return true;
     case TYPE_DIRECTORY:
-        log("Skipping directory entry \"%s\"", tar_get_name(ar));
+        log("Skipping directory entry \"%s\"", tar_get_name(ar, false));
         tar->last_seen_dir = ar->entry_offset;
         return tar_parse_entry(ar, ar->entry_offset_next);
     case TYPE_PAX_GLOBAL:
