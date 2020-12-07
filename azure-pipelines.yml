@@ -16,7 +16,11 @@ jobs:
     - task: CMake@1
       inputs:
         cmakeArgs: '-DENABLE_7Z=ON -DBUILD_SAMPLES=ON ..'
-
+      displayName: 'Generate CMake cache'
+    - task: CMake@1
+      inputs:
+        cmakeArgs: '--build .'
+      displayName: 'Build'
 - job: Windows
   pool:
     vmImage: 'windows-latest'
@@ -24,7 +28,11 @@ jobs:
     - task: CMake@1
       inputs:
         cmakeArgs: '-DENABLE_7Z=ON -DBUILD_SAMPLES=ON ..'
-
+      displayName: 'Generate CMake cache'
+    - task: CMake@1
+      inputs:
+        cmakeArgs: '--build .'
+      displayName: 'Build'
 - job: MacOS
   pool:
     vmImage: 'macOS-latest'
@@ -32,3 +40,8 @@ jobs:
     - task: CMake@1
       inputs:
         cmakeArgs: '-DENABLE_7Z=ON -DBUILD_SAMPLES=ON ..'
+      displayName: 'Generate CMake cache'
+    - task: CMake@1
+      inputs:
+        cmakeArgs: '--build .'
+      displayName: 'Build'
