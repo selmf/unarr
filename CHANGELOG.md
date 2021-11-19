@@ -8,6 +8,7 @@
 * Create CMake config-files for downstream integration
 * New ar_entry_get_raw_name function for getting raw zip filenames (usefull for faulty
   zip archives with non-spec filename encodings)
+* Support for Loongson CPUs (Liu Xiang)
 
 ### Changed
 * Update LZMA SDK code to version 19.00
