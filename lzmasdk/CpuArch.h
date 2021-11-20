@@ -96,6 +96,12 @@ MY_CPU_64BIT means that processor can work with 64-bit registers.
 #endif
 
 
+#if  defined(__loongarch64)
+  #define MY_CPU_NAME "loongarch64"
+  #define MY_CPU_64BIT
+#endif
+
+
 #if  defined(__ppc64__) \
   || defined(__powerpc64__) \
   || defined(__ppc__) \
@@ -169,6 +175,7 @@ MY_CPU_64BIT means that processor can work with 64-bit registers.
     || defined(__MIPSEL__) \
     || defined(__MIPSEL) \
     || defined(_MIPSEL) \
+    || defined(_LOONGARCH_ARCH_LOONGARCH64) \
     || defined(__BFIN__) \
     || (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__))
   #define MY_CPU_LE
