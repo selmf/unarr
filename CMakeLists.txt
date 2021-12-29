@@ -44,6 +44,7 @@ add_library(unarr
   lzmasdk/Ppmd7.c
   lzmasdk/Ppmd8.c
   lzmasdk/Ppmd7Dec.c
+  lzmasdk/Ppmd7aDec.c
   lzmasdk/Ppmd8Dec.c
   rar/lzss.h
   rar/rar.h
