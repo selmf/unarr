@@ -21,7 +21,8 @@ jobs:
       inputs:
         cmakeArgs: '--build .'
       displayName: 'Build'
-- job: Windows
+
+- job: Windows_MSVC
   pool:
     vmImage: 'windows-latest'
   steps:
@@ -33,6 +34,33 @@ jobs:
       inputs:
         cmakeArgs: '--build .'
       displayName: 'Build'
+
+- job: WindowsMinGW
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+    - task: CMake@1
+      inputs:
+        cmakeArgs: '-G "MinGW Makefiles" -DENABLE_7Z=ON -DBUILD_SAMPLES=ON ..'
+      displayName: 'Generate CMake cache'
+    - task: CMake@1
+      inputs:
+        cmakeArgs: '--build .'
+      displayName: 'Build'
+
+- job: WindowsMSYS
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+    - task: CMake@1
+      inputs:
+        cmakeArgs: '-G "MSYS Makefiles" -DENABLE_7Z=ON -DBUILD_SAMPLES=ON ..'
+      displayName: 'Generate CMake cache'
+    - task: CMake@1
+      inputs:
+        cmakeArgs: '--build .'
+      displayName: 'Build'
+
 - job: MacOS
   pool:
     vmImage: 'macOS-latest'
