@@ -1,6 +1,6 @@
 # (lib)unarr changelog
 
-## 1.1.0 - (unreleased)
+## 1.1.0beta - 2022-05-01
 
 ### Added
 * Support building unarr-test using CMake
