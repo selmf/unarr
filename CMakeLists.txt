@@ -17,7 +17,7 @@ endif()
 # Build options
 option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library" ON)
 option(BUILD_SAMPLES "Build unarr-test executable" OFF)
-option(ENABLE_7Z "Build with 7z support" OFF)
+option(ENABLE_7Z "Build with 7z support" ON)
 option(USE_SYSTEM_BZ2 "Build with system bzip2 if possible" ON)
 option(USE_SYSTEM_LZMA "Build with system lzma/xz if possible" ON)
 option(USE_SYSTEM_ZLIB "Build with system zlib if possible" ON)

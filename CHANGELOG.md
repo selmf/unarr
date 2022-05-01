@@ -1,6 +1,11 @@
 # (lib)unarr changelog
 
-## 1.1.0beta - 2022-05-01
+## 1.1.0 (unreleased)
+
+### Changed
+
+* Build 7z support by default
+## 1.1.0.beta1 - 2022-05-01
 
 ### Added
 * Support building unarr-test using CMake
