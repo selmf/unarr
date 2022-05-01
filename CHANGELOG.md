@@ -8,12 +8,14 @@
 * Create CMake config-files for downstream integration
 * New ar_entry_get_raw_name function for getting raw zip filenames (usefull for faulty zip archives with non-spec filename encodings)
 * Support for Loongson CPUs (Liu Xiang)
+* Faster crc32 based on Intel slice-by-8 algorithm
 
 ### Changed
 * Update LZMA SDK code to version 21.07
 * Restore limited support for 7z archive extraction (using an embedded subset of LZMA SDK)
 * Convert source to LF line endings
 * Increase UNARR_API_VERSION to 110
+* Use internal crc32 implementation by default
 
 ### Fixed
 * Fixed a possible memleak in rar filter code found by clang static analyzer

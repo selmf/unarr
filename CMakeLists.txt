@@ -21,6 +21,8 @@ option(ENABLE_7Z "Build with 7z support" OFF)
 option(USE_SYSTEM_BZ2 "Build with system bzip2 if possible" ON)
 option(USE_SYSTEM_LZMA "Build with system lzma/xz if possible" ON)
 option(USE_SYSTEM_ZLIB "Build with system zlib if possible" ON)
+option(USE_ZLIB_CRC "Use zlib crc32" OFF)
+
 
 # Build target
 add_library(unarr
