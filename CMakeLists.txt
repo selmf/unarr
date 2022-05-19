@@ -205,6 +205,18 @@ if(MSVC)
   target_compile_definitions(unarr PRIVATE _CRT_SECURE_NO_WARNINGS)
 endif()
 
+# Generate paths for pkg-config file
+if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+  set(PROJECT_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
+else()
+  set(PROJECT_INSTALL_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+  set(PROJECT_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_LIBDIR})
+else()
+  set(PROJECT_INSTALL_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+
 # Write pkg-config file
 configure_file("pkg-config.pc.cmake" "lib${PROJECT_NAME}.pc" @ONLY)
 

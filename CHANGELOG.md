@@ -3,8 +3,11 @@
 ## 1.1.0 (unreleased)
 
 ### Changed
-
 * Build 7z support by default
+
+### Fixed
+* Fix pkg-config when using absolute paths
+
 ## 1.1.0.beta1 - 2022-05-01
 
 ### Added
