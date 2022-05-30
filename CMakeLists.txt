@@ -131,7 +131,7 @@ if(ZLIB_FOUND)
     target_include_directories(unarr PRIVATE ${ZLIB_INCLUDE_DIRS})
     target_link_libraries(unarr PRIVATE ${ZLIB_LIBRARIES})
   endif()
-  target_compile_definitions(unarr PRIVATE -DHAVE_ZLIB)
+  target_compile_definitions(unarr PRIVATE HAVE_ZLIB $<$<BOOL:${USE_ZLIB_CRC}>:USE_ZLIB_CRC>)
   # Add zlib to libunarr.pc Requires.private
   set(PROJECT_REQUIRES_PRIVATE "${PROJECT_REQUIRES_PRIVATE} zlib")
   set(UNARR_DEPENDS_ZLIB "find_dependency(ZLIB)")
