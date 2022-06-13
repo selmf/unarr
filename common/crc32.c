@@ -8,7 +8,7 @@
    crc32 calculation based on Intel slice-by-8 algorithm with lookup-table generation code
    adapted from https://gnunet.org/svn/gnunet/src/util/crypto_crc.c (public domain)        */
 
-static inline uint32_t uint32le(const uint8_t *data) { return data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24; }
+static inline uint32_t uint32le(const uint8_t *data) { return data[0] | data[1] << 8 | data[2] << 16 | (uint32_t)data[3] << 24; }
 
 static bool crc_table_ready = false;
 static uint32_t crc_table[8][256];
