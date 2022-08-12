@@ -24,6 +24,12 @@ option(USE_SYSTEM_ZLIB "Build with system zlib if possible" ON)
 option(USE_ZLIB_CRC "Use zlib crc32" OFF)
 
 option(BUILD_FUZZER "Build libFuzzer coverage-guided fuzzer test" OFF)
+option(BUILD_UNIT_TESTS ON)
+
+if(BUILD_UNIT_TESTS)
+  enable_testing()
+  add_subdirectory(test)
+endif()
 
 if(BUILD_FUZZER)
   if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")

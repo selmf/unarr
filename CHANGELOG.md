@@ -4,6 +4,7 @@
 
 ### Added
 * libFuzzer target for coverage-guided fuzz testing (Wang Xin-yu (王昕宇))
+* Unit testing using CMocka (WIP)
 
 ### Changed
 * Build 7z support by default
