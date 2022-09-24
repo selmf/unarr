@@ -1,6 +1,5 @@
-project (unarr-test C)
+#project (unarr-test C)
 
-include(CTest)
 include(ProcessorCount)
 ProcessorCount(N)
 
@@ -26,6 +25,7 @@ if(BUILD_TEST)
 
   function(run_test file)
     add_test(NAME ${file} COMMAND unarr-test ${CMAKE_CURRENT_SOURCE_DIR}/corpus/${file})
+    set_tests_properties(${file} PROPERTIES ENVIRONMENT "PATH=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE};$ENV{PATH}")
   endfunction(run_test file)
 
   # Integration tests - store (no compression)
@@ -37,10 +37,15 @@ if(BUILD_TEST)
 endif()
 
 if (BUILD_UNIT_TESTS)
+  find_package(cmocka CONFIG REQUIRED)
   add_executable(crc32-test
     crc32-test.c)
     #../common/crc32.c)
-  target_link_libraries(crc32-test cmocka)
-
+    if(TARGET cmocka::cmocka)
+      target_link_libraries(crc32-test PRIVATE cmocka::cmocka)
+    else()
+      target_include_directories(crc32-test PRIVATE ${CMOCKA_INCLUDE_DIR})
+      target_link_libraries(crc32-test PRIVATE ${CMOCKA_LIBRARY})
+    endif()
   add_test(crc32 crc32-test)
 endif()

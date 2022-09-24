@@ -23,9 +23,10 @@ option(USE_ZLIB_CRC "Use zlib crc32" OFF)
 
 option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library" ON)
 
-option(BUILD_TEST "Build unarr-test executable and integration tests" OFF)
+
+option(BUILD_INTEGRATION_TESTS "Build unarr-test executable and integration tests" OFF)
 option(BUILD_FUZZER "Build libFuzzer coverage-guided fuzzer test" OFF)
-option(BUILD_UNIT_TEST "Build unit tests (requires CMocka)" OFF)
+option(BUILD_UNIT_TESTS "Build unit tests (requires CMocka)" OFF)
 
 
 if(BUILD_FUZZER)
@@ -36,7 +37,7 @@ if(BUILD_FUZZER)
   endif()
 endif()
 
-if(BUILD_TEST OR BUILD_UNIT_TEST OR BUILD_FUZZER)
+if(BUILD_UNIT_TESTS OR BUILD_INTEGRATION_TESTS OR BUILD_FUZZER)
   enable_testing()
   add_subdirectory(test)
 endif()
