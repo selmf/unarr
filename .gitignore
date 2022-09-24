@@ -1,6 +1,9 @@
-build
-test/fuzzed
-test/corpus
+build*
+test/corpus/fuzzed
+!test/corpus/integration/*.7z
+!test/corpus/integration/*.rar
+!test/corpus/integration/*.tar
+!test/corpus/integration/*.zip
 *.orig
 
 # Prerequisites

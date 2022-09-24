@@ -19,11 +19,21 @@ if (BUILD_FUZZER)
             -jobs=${N})
 endif()
 
-if(BUILD_SAMPLES)
+if(BUILD_TEST)
   add_executable(unarr-test
                 main.c)
-  # add_dependencies(unarr-test unarr)
   target_link_libraries(unarr-test unarr)
+
+  function(run_test file)
+    add_test(NAME ${file} COMMAND unarr-test ${CMAKE_CURRENT_SOURCE_DIR}/corpus/${file})
+  endfunction(run_test file)
+
+  # Integration tests - store (no compression)
+  run_test(integration/lipsum_rar4_store.rar)
+  run_test(integration/lipsum.tar)
+  run_test(integration/lipsum_zip_copy.zip)
+  run_test(integration/lipsum_7z_store.7z)
+
 endif()
 
 if (BUILD_UNIT_TESTS)

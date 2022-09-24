@@ -15,30 +15,30 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Build options
-option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library" ON)
-option(BUILD_SAMPLES "Build unarr-test executable" OFF)
 option(ENABLE_7Z "Build with 7z support" ON)
 option(USE_SYSTEM_BZ2 "Build with system bzip2 if possible" ON)
 option(USE_SYSTEM_LZMA "Build with system lzma/xz if possible" ON)
 option(USE_SYSTEM_ZLIB "Build with system zlib if possible" ON)
 option(USE_ZLIB_CRC "Use zlib crc32" OFF)
 
-option(BUILD_FUZZER "Build libFuzzer coverage-guided fuzzer test" OFF)
-option(BUILD_UNIT_TESTS ON)
+option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library" ON)
 
-if(BUILD_UNIT_TESTS)
-  enable_testing()
-  add_subdirectory(test)
-endif()
+option(BUILD_TEST "Build unarr-test executable and integration tests" OFF)
+option(BUILD_FUZZER "Build libFuzzer coverage-guided fuzzer test" OFF)
+option(BUILD_UNIT_TEST "Build unit tests (requires CMocka)" OFF)
+
 
 if(BUILD_FUZZER)
   if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     set(sanitize_opts "-fsanitize=fuzzer,address,undefined")
-    enable_testing()
-    add_subdirectory(test)
   else()
     error("Fuzzer build requires a Clang compiler")
   endif()
+endif()
+
+if(BUILD_TEST OR BUILD_UNIT_TEST OR BUILD_FUZZER)
+  enable_testing()
+  add_subdirectory(test)
 endif()
 
 # Build target
@@ -179,13 +179,6 @@ if(ENABLE_7Z)
         lzmasdk/LzmaDec.c)
     endif()
 target_compile_definitions(unarr PRIVATE -DHAVE_7Z -D_7ZIP_PPMD_SUPPPORT)
-endif()
-
-if(BUILD_SAMPLES AND NOT BUILD_FUZZER)
-  add_executable(unarr-test
-                test/main.c)
-  add_dependencies(unarr-test unarr)
-  target_link_libraries(unarr-test unarr)
 endif()
 
 # Compiler specific settings
