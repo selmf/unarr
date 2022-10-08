@@ -56,12 +56,6 @@ make
 cmake .. -DBUILD_SHARED_LIBS=OFF
 ```
 
-... with 7z support (see note below)
-
-```bash
-cmake .. -DENABLE_7Z=ON
-```
-
 By default, (lib)unarr will try to detect and use system libraries like bzip2,
 xz/LibLZMA and zlib. If this is undesirable, you can override this behavior by
 specifying:
@@ -75,6 +69,29 @@ Install
 ```bash
 make install
 ```
+
+#### Testing
+
+Unarr supports unit tests, integration tests and fuzzing.
+
+
+```bash
+cmake .. -DBUILD_UNIT_TESTS=ON -DBUILD_INTEGRATION_TESTS=ON
+```
+
+To build the unit tests, the *cmocka* unit testing framework is required.
+
+Building the integration tests also enables the *unarr-test* executable
+which can be used to run additional tests on user-provided archive files.
+
+Building the fuzzer target will provide a coverage-guided fuzzer based
+on llvm libfuzzer. It should be treated as a stand-alone target.
+
+```bash
+cmake .. -DBUILD_FUZZER=ON
+```
+
+All tests can be run using ctest or their respective executables.
 
 #### Embedded build
 
@@ -100,10 +117,12 @@ Make sure the required headers are present in the include path.
 Check [unarr.h](unarr.h) and [unarr-test](test/main.c) to get a general feel
 for the api and usage.
 
-To build the unarr-test sample application, use:
+The unarr-test sample application can be used to test archives.
+
+To build it, use:
 
 ```bash
-cmake .. -DBUILD_SAMPLES=ON
+cmake .. -DBUILD_INTEGRATION_TESTS=ON
 ```
 
 ## Limitations
