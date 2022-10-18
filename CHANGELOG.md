@@ -12,6 +12,7 @@
 
 ### Fixed
 * Fix pkg-config when using absolute paths
+* Fix bzip2 integration
 
 ## 1.1.0.beta1 - 2022-05-01
 
