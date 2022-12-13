@@ -18,7 +18,7 @@ if (BUILD_FUZZER)
             -jobs=${N})
 endif()
 
-if(BUILD_TEST)
+if(BUILD_INTEGRATION_TESTS)
   add_executable(unarr-test
                 main.c)
   target_link_libraries(unarr-test unarr)
@@ -28,11 +28,42 @@ if(BUILD_TEST)
     set_tests_properties(${file} PROPERTIES ENVIRONMENT "PATH=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE};$ENV{PATH}")
   endfunction(run_test file)
 
-  # Integration tests - store (no compression)
+  # Rar
   run_test(integration/lipsum_rar4_store.rar)
+  run_test(integration/lipsum_rar4_default.rar)
+  run_test(integration/lipsum_rar4_max.rar)
+
+  # Tar
   run_test(integration/lipsum.tar)
+
+  # Zip
   run_test(integration/lipsum_zip_copy.zip)
+  run_test(integration/lipsum_zip_default.zip)
+  run_test(integration/lipsum_zip_max.zip)
+  # Non-standard compression methods
+  if(BZIP2_FOUND)
+    run_test(integration/lipsum_zip_bzip2.zip)
+  endif()
+  run_test(integration/lipsum_zip_deflate64.zip)
+  run_test(integration/lipsum_zip_lzma1.zip)
+  run_test(integration/lipsum_zip_ppmd.zip)
+  if(LIBLZMA_FOUND)
+    run_test(integration/lipsum_zip_xz.zip)
+  endif()
+
+  # 7z
+  if(ENABLE_7Z)
   run_test(integration/lipsum_7z_store.7z)
+  run_test(integration/lipsum_7z_default.7z)
+  run_test(integration/lipsum_7z_max.7z)
+  # Non-standard compression methods
+  run_test(integration/lipsum_7z_lzma1.7z)
+  run_test(integration/lipsum_7z_ppmd.7z)
+  endif()
+
+  # Rar
+  # Audio
+  # BMP
 
 endif()
 

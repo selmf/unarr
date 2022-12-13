@@ -37,11 +37,6 @@ if(BUILD_FUZZER)
   endif()
 endif()
 
-if(BUILD_UNIT_TESTS OR BUILD_INTEGRATION_TESTS OR BUILD_FUZZER)
-  enable_testing()
-  add_subdirectory(test)
-endif()
-
 # Build target
 add_library(unarr
   _7z/_7z.h
@@ -223,6 +218,13 @@ if(MSVC)
   target_compile_options(unarr PRIVATE /W3
                         $<$<CONFIG:Release>:/Ox>)
   target_compile_definitions(unarr PRIVATE _CRT_SECURE_NO_WARNINGS)
+endif()
+
+# Include tests
+
+if(BUILD_UNIT_TESTS OR BUILD_INTEGRATION_TESTS OR BUILD_FUZZER)
+  enable_testing()
+  add_subdirectory(test)
 endif()
 
 # Generate paths for pkg-config file
