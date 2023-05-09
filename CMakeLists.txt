@@ -33,7 +33,7 @@ if(BUILD_FUZZER)
   if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     set(sanitize_opts "-fsanitize=fuzzer,address,undefined")
   else()
-    error("Fuzzer build requires a Clang compiler")
+    message(FATAL_ERROR "Fuzzer build requires a Clang compiler")
   endif()
 endif()
 
