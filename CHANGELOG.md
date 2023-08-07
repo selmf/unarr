@@ -6,6 +6,7 @@
 * libFuzzer target for coverage-guided fuzz testing (Wang Xin-yu (王昕宇))
 * Unit testing using CMocka
 * Integration tests
+* Update lzma SDK to v23.01
 
 ### Changed
 * Build 7z support by default

@@ -167,7 +167,6 @@ if(ENABLE_7Z)
             lzmasdk/Bra.c
             lzmasdk/Bra.h
             lzmasdk/Bra86.c
-            lzmasdk/BraIA64.c
             lzmasdk/7zCrc.h
             lzmasdk/Delta.h
             lzmasdk/Delta.c
