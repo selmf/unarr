@@ -49,3 +49,6 @@ test/corpus/fuzzed
 *.su
 *.idb
 *.pdb
+
+# VS Code
+.vscode
