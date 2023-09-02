@@ -162,6 +162,7 @@ if(ENABLE_7Z)
             lzmasdk/7zBuf.c
             lzmasdk/7zDec.c
             lzmasdk/7zStream.c
+            lzmasdk/7zWindows.h
             lzmasdk/Bcj2.h
             lzmasdk/Bcj2.c
             lzmasdk/Bra.c
@@ -172,7 +173,7 @@ if(ENABLE_7Z)
             lzmasdk/Delta.c
             lzmasdk/Lzma2Dec.h
             lzmasdk/Lzma2Dec.c)
-  if(LIBLZMA_FOUND)
+  if(LIBLZMA_FOUND) # TODO: Replace 7z lzma with system lzma
     target_sources(unarr PRIVATE lzmasdk/LzmaDec.h lzmasdk/LzmaDec.c)
   endif()
   target_compile_definitions(unarr PRIVATE -DHAVE_7Z -DZ7_PPMD_SUPPORT)
