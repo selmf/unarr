@@ -175,7 +175,7 @@ if(ENABLE_7Z)
   if(LIBLZMA_FOUND)
     target_sources(unarr PRIVATE lzmasdk/LzmaDec.h lzmasdk/LzmaDec.c)
   endif()
-  target_compile_definitions(unarr PRIVATE -DHAVE_7Z -D_7ZIP_PPMD_SUPPPORT)
+  target_compile_definitions(unarr PRIVATE -DHAVE_7Z -DZ7_PPMD_SUPPORT)
 endif()
 
 # Compiler specific settings
