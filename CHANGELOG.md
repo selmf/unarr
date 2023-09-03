@@ -1,6 +1,6 @@
 # (lib)unarr changelog
 
-## 1.1.0 (unreleased)
+## 1.1.0 (2023-09-03)
 
 ### Added
 * libFuzzer target for coverage-guided fuzz testing (Wang Xin-yu (王昕宇))
