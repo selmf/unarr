@@ -90,6 +90,7 @@ set_target_properties(
   PROPERTIES PUBLIC_HEADER unarr.h
              C_VISIBILITY_PRESET hidden
              C_STANDARD 99
+             C_EXTENSIONS OFF
              C_STANDARD_REQUIRED ON
              DEFINE_SYMBOL UNARR_EXPORT_SYMBOLS
              VERSION ${PROJECT_VERSION}
