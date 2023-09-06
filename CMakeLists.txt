@@ -8,6 +8,7 @@ set(PROJECT_DESCRIPTION "A decompression library for rar, tar and zip files.")
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+include(CheckIPOSupported)
 
 # Set build type to default if unset.
 if(NOT CMAKE_BUILD_TYPE)
@@ -94,6 +95,14 @@ set_target_properties(
              VERSION ${PROJECT_VERSION}
              SOVERSION ${PROJECT_VERSION_MAJOR})
 
+# Enable lto optimization if supported
+check_ipo_supported(RESULT lto_supported OUTPUT lto_diagnostic)
+if(lto_supported)
+  set_target_properties(unarr PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+  message(WARNING "IPO is not supported: ${output}")
+endif()
+
 # Add include directories for build and install
 target_include_directories(
   unarr PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -179,8 +188,7 @@ if(UNIX
             -Werror-implicit-function-declaration
             $<$<CONFIG:Release>:-fomit-frame-pointer>
             $<$<C_COMPILER_ID:Clang,AppleClang>:
-            -Wno-missing-field-initializers>
-            -flto)
+            -Wno-missing-field-initializers>)
   if(BUILD_FUZZER)
     target_compile_options(unarr PUBLIC "${sanitize_opts}")
     target_compile_definitions(
@@ -199,11 +207,6 @@ if(UNIX
     else()
       set(linker_opts "-Wl,--as-needed -Wl,--no-undefined")
     endif()
-  endif()
-
-  # Clang linker needs -flto too when doing lto
-  if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
-    set(linker_opts "${linker_opts} -flto")
   endif()
 
   set_target_properties(unarr PROPERTIES LINK_FLAGS "${linker_opts}")
