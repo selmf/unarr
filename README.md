@@ -115,11 +115,9 @@ Unarr was written for comic book archives, so it currently doesn't support:
 
 ### 7z support
 
-7z support is currently limited and has to be explicitly enabled at build time.
-
-This is due to a known performance problem in the ANSI-C based 7z extraction
-code provided by the LZMA SDK that limits its usefulness for large files with
-solid compression (see https://github.com/zeniko/unarr/issues/4).
+7z support for large files with solid compression is currently limited by a
+known performance problem in the ANSI-C based LZMA SDK
+(see https://github.com/zeniko/unarr/issues/4).
 
 Fixing this problem will require modification or replacement of the LZMA SDK
 code used.
