@@ -1,5 +1,13 @@
 # (lib)unarr changelog
 
+## 1.1.1 (2023-10-23)
+
+### Fixed
+* Fix heap corruption in rar filters (reported by Radosław Madej from Check Point Research)
+
+### Other
+* Update Readme
+
 ## 1.1.0 (2023-09-03)
 
 ### Added
