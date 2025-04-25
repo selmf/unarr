@@ -8,7 +8,7 @@ insert_final_newline = true
 indent_style = space
 indent_size = 4
 
-[{*.yml,CMakeLists.txt,*.md,*.in}]
+[{*.yml,CMakeLists.txt,*.md,*cmake.in}]
 indent_size = 2
 
 [{*.md}]
