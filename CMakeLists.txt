@@ -50,7 +50,7 @@ option(BUILD_FUZZER "Build libFuzzer coverage-guided fuzzer test" OFF)
 option(BUILD_UNIT_TESTS "Build unit tests (requires CMocka)" OFF)
 
 if(BUILD_FUZZER)
-  if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+  if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang|AppleClang")
     set(sanitize_opts "-fsanitize=fuzzer,address,undefined")
   else()
     message(FATAL_ERROR "Fuzzer build requires a Clang compiler")
@@ -210,7 +210,8 @@ if(UNIX
             $<$<C_COMPILER_ID:Clang,AppleClang>:
             -Wno-missing-field-initializers>)
   if(BUILD_FUZZER)
-    target_compile_options(unarr PUBLIC "${sanitize_opts}")
+    target_compile_options(unarr PRIVATE "${sanitize_opts}")
+    target_link_libraries(unarr PRIVATE "${sanitize_opts}")
     target_compile_definitions(
       unarr PRIVATE -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
   endif()
@@ -218,18 +219,14 @@ if(UNIX
   target_compile_definitions(unarr PRIVATE -D_FILE_OFFSET_BITS=64)
 
   # Linker flags
-
-  if(BUILD_FUZZER)
-    set(linker_opts "${sanitize_opts}")
-  else()
+  if(NOT BUILD_FUZZER)
     if("${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
-      set(linker_opts "-Wl,-undefined,error")
+      target_link_options(unarr PRIVATE "-Wl,-undefined,error")
     else()
-      set(linker_opts "-Wl,--as-needed -Wl,--no-undefined")
+      target_link_options(unarr PRIVATE "-Wl,--as-needed" "-Wl,--no-undefined")
     endif()
   endif()
 
-  set_target_properties(unarr PROPERTIES LINK_FLAGS "${linker_opts}")
 endif()
 
 if(MSVC)
