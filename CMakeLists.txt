@@ -121,11 +121,11 @@ set_target_properties(
              SOVERSION ${PROJECT_VERSION_MAJOR})
 
 # Enable lto optimization if supported
-check_ipo_supported(RESULT lto_supported OUTPUT lto_diagnostic)
+check_ipo_supported(RESULT lto_supported OUTPUT lto_diagnostic LANGUAGES C)
 if(lto_supported)
   set_target_properties(unarr PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 else()
-  message(WARNING "IPO is not supported: ${output}")
+  message(WARNING "IPO is not supported: ${lto_diagnostic}")
 endif()
 
 if(BUILD_SHARED_LIBS)
