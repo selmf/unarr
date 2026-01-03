@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
 project(
   unarr
-  VERSION 1.1.0
+  VERSION 1.2.0
   LANGUAGES C)
 set(PROJECT_DESCRIPTION "A decompression library for rar, tar and zip files.")
 
@@ -57,6 +57,9 @@ if(BUILD_FUZZER)
   endif()
 endif()
 
+# Set version in header
+configure_file(unarr.h.in unarr.h @ONLY)
+
 # Build target
 add_library(
   unarr
@@ -101,6 +104,11 @@ add_library(
   zip/uncompress-zip.c
   zip/zip.c)
 
+target_include_directories(unarr PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  $<INSTALL_INTERFACE:include>
+)
+
 set_target_properties(
   unarr
   PROPERTIES PUBLIC_HEADER unarr.h
@@ -119,11 +127,6 @@ if(lto_supported)
 else()
   message(WARNING "IPO is not supported: ${output}")
 endif()
-
-# Add include directories for build and install
-target_include_directories(
-  unarr PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-               $<INSTALL_INTERFACE:include>)
 
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(unarr PUBLIC UNARR_IS_SHARED_LIBRARY)

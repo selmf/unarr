@@ -1,5 +1,23 @@
 # (lib)unarr changelog
 
+## 1.2.0 (WIP)
+### Changed
+* Increase minimum CMake version to 3.22
+
+### Added
+* Semantic versioning defines for major, minor and patch version in unarr.h
+* UNARR_VERSION version string define
+* UNARR_VERSION_CHECK macro for version checks against UNARR_API_VERSION
+* Functions to query UNARR_VERSION and UNARR_API_VERSION at runtime
+
+### Changed
+* Genereate UNARR_API_VERSION from semantic versioning constants
+* Use a packed hexadecimal format for UNARR_API_VERSION, e.g.,
+  0xMMmmPP where MM indicates the major, mm the minor and PP the patch
+  version.
+
+
+
 ## 1.1.1 (2023-10-23)
 
 ### Fixed
