@@ -237,6 +237,9 @@ if(MSVC)
   target_compile_definitions(unarr PRIVATE _CRT_SECURE_NO_WARNINGS)
 endif()
 
+# Alias target for unarr::unarr
+add_library(unarr::unarr ALIAS unarr)
+
 # Include tests
 
 if(BUILD_UNIT_TESTS
