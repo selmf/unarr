@@ -139,7 +139,7 @@ if(USE_SYSTEM_BZ2)
 endif()
 if(BZIP2_FOUND)
   target_link_libraries(unarr PRIVATE BZip2::BZip2)
-  target_compile_definitions(unarr PRIVATE -DHAVE_BZIP2)
+  target_compile_definitions(unarr PRIVATE HAVE_BZIP2)
   # Bzip2 upstream does not supply a .pc file. Add it to Libs.private.
   set(PROJECT_LIBS_PRIVATE "-I${BZIP2_INCLUDE_DIRS} -l${BZIP2_LIBRARIES}")
   set(UNARR_DEPENDS_BZip2 "find_dependency(BZip2)")
@@ -150,7 +150,7 @@ if(USE_SYSTEM_LZMA)
 endif()
 if(LIBLZMA_FOUND)
   target_link_libraries(unarr PRIVATE LibLZMA::LibLZMA)
-  target_compile_definitions(unarr PRIVATE -DHAVE_LIBLZMA)
+  target_compile_definitions(unarr PRIVATE HAVE_LIBLZMA)
   set(PROJECT_REQUIRES_PRIVATE "${PROJECT_REQUIRES_PRIVATE} liblzma")
   set(UNARR_DEPENDS_LibLZMA "find_dependency(LibLZMA)")
 else()
@@ -192,7 +192,7 @@ if(ENABLE_7Z)
   if(LIBLZMA_FOUND) # TODO: Replace 7z lzma with system lzma
     target_sources(unarr PRIVATE lzmasdk/LzmaDec.h lzmasdk/LzmaDec.c)
   endif()
-  target_compile_definitions(unarr PRIVATE -DHAVE_7Z -DZ7_PPMD_SUPPORT)
+  target_compile_definitions(unarr PRIVATE HAVE_7Z Z7_PPMD_SUPPORT)
 endif()
 
 # Compiler specific settings
@@ -215,10 +215,10 @@ if(UNIX
     target_compile_options(unarr PRIVATE "${sanitize_opts}")
     target_link_libraries(unarr PRIVATE "${sanitize_opts}")
     target_compile_definitions(
-      unarr PRIVATE -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
+      unarr PRIVATE FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
   endif()
 
-  target_compile_definitions(unarr PRIVATE -D_FILE_OFFSET_BITS=64)
+  target_compile_definitions(unarr PRIVATE _FILE_OFFSET_BITS=64)
 
   # Linker flags
   if(NOT BUILD_FUZZER)
