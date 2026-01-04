@@ -113,12 +113,18 @@ set_target_properties(
   unarr
   PROPERTIES PUBLIC_HEADER unarr.h
              C_VISIBILITY_PRESET hidden
-             C_STANDARD 99
+             VISIBILITY_INLINES_HIDDEN ON
              C_EXTENSIONS OFF
              C_STANDARD_REQUIRED ON
-             DEFINE_SYMBOL UNARR_EXPORT_SYMBOLS
              VERSION ${PROJECT_VERSION}
              SOVERSION ${PROJECT_VERSION_MAJOR})
+
+target_compile_features(unarr PRIVATE c_std_99)
+target_compile_definitions(unarr
+  PRIVATE
+    UNARR_EXPORT_SYMBOLS
+  PUBLIC
+    $<$<BOOL:${BUILD_SHARED_LIBS}>:UNARR_IS_SHARED_LIBRARY>)
 
 # Enable lto optimization if supported
 check_ipo_supported(RESULT lto_supported OUTPUT lto_diagnostic LANGUAGES C)
@@ -126,10 +132,6 @@ if(lto_supported)
   set_target_properties(unarr PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 else()
   message(WARNING "IPO is not supported: ${lto_diagnostic}")
-endif()
-
-if(BUILD_SHARED_LIBS)
-  target_compile_definitions(unarr PUBLIC UNARR_IS_SHARED_LIBRARY)
 endif()
 
 if(USE_SYSTEM_BZ2)
