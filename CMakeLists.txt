@@ -10,19 +10,6 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(CheckIPOSupported)
 
-# Set default build type to "Release" if empty
-set(default_build_type "Release")
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(
-    STATUS
-      "Setting build type to '${default_build_type}' as none was specified.")
-  set(CMAKE_BUILD_TYPE
-      "${default_build_type}"
-      CACHE STRING "Choose the type of build." FORCE)
-  # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-                                               "MinSizeRel" "RelWithDebInfo")
-endif()
 
 # Require out-of-source builds
 file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
@@ -49,9 +36,36 @@ option(BUILD_INTEGRATION_TESTS
 option(BUILD_FUZZER "Build libFuzzer coverage-guided fuzzer test" OFF)
 option(BUILD_UNIT_TESTS "Build unit tests (requires CMocka)" OFF)
 
+# Set default build type to "Release" if empty
+# RelWithDebInfo for fuzzing
+if (BUILD_FUZZER)
+  set(default_build_type "RelWithDebInfo")
+else()
+  set(default_build_type "Release")
+endif()
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(
+    STATUS
+      "Setting build type to '${default_build_type}' as none was specified.")
+  set(CMAKE_BUILD_TYPE
+      "${default_build_type}"
+      CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
+                                                "MinSizeRel" "RelWithDebInfo")
+endif()
+
 if(BUILD_FUZZER)
   if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang|AppleClang")
-    set(sanitize_opts "-fsanitize=fuzzer,address,undefined")
+    add_library(fuzzer_flags INTERFACE)
+    target_compile_options(fuzzer_flags INTERFACE
+      -fno-omit-frame-pointer
+      -g
+      -O1
+      -fsanitize=fuzzer,address,undefined)
+    target_link_options(fuzzer_flags INTERFACE
+      -fsanitize=fuzzer,address,undefined)
+    target_compile_definitions(fuzzer_flags INTERFACE FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
   else()
     message(FATAL_ERROR "Fuzzer build requires a Clang compiler")
   endif()
@@ -129,7 +143,12 @@ target_compile_definitions(unarr
 # Enable lto optimization if supported
 check_ipo_supported(RESULT lto_supported OUTPUT lto_diagnostic LANGUAGES C)
 if(lto_supported)
-  set_target_properties(unarr PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+  # Lto is discouraged for fuzzing
+  if(BUILD_FUZZER)
+    set_target_properties(unarr PROPERTIES INTERPROCEDURAL_OPTIMIZATION FALSE)
+  else()
+    set_target_properties(unarr PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+  endif()
 else()
   message(WARNING "IPO is not supported: ${lto_diagnostic}")
 endif()
@@ -212,8 +231,8 @@ if(UNIX
             $<$<C_COMPILER_ID:Clang,AppleClang>:
             -Wno-missing-field-initializers>)
   if(BUILD_FUZZER)
-    target_compile_options(unarr PRIVATE "${sanitize_opts}")
-    target_link_libraries(unarr PRIVATE "${sanitize_opts}")
+    target_link_libraries(unarr PRIVATE fuzzer_flags)
+
     target_compile_definitions(
       unarr PRIVATE FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
   endif()

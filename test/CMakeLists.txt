@@ -5,8 +5,7 @@ ProcessorCount(N)
 
 if(BUILD_FUZZER)
   add_executable(fuzzer fuzzer.c)
-  target_compile_options(fuzzer PRIVATE "${sanitize_opts}")
-  target_link_libraries(fuzzer PRIVATE unarr "${sanitize_opts}")
+  target_link_libraries(fuzzer PRIVATE unarr fuzzer_flags)
 
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/corpus)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/corpus/fuzzed)
