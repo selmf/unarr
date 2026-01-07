@@ -52,3 +52,6 @@ test/corpus/fuzzed
 
 # VS Code
 .vscode
+
+# Clangd
+.cache
