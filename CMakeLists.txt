@@ -31,14 +31,16 @@ option(USE_ZLIB_CRC "Use zlib crc32" OFF)
 
 option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library" ON)
 
-option(BUILD_INTEGRATION_TESTS
-       "Build unarr-test executable and integration tests" OFF)
-option(BUILD_FUZZER "Build libFuzzer coverage-guided fuzzer test" OFF)
-option(BUILD_UNIT_TESTS "Build unit tests (requires CMocka)" OFF)
+if(PROJECT_IS_TOP_LEVEL)
+  option(BUILD_INTEGRATION_TESTS
+        "Build unarr-test executable and integration tests" OFF)
+  option(BUILD_FUZZER "Build libFuzzer coverage-guided fuzzer test" OFF)
+  option(BUILD_UNIT_TESTS "Build unit tests (requires CMocka)" OFF)
+endif()
 
 # Set default build type to "Release" if empty
 # RelWithDebInfo for fuzzing
-if (BUILD_FUZZER)
+if (PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
   set(default_build_type "RelWithDebInfo")
 else()
   set(default_build_type "Release")
@@ -55,7 +57,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
                                                 "MinSizeRel" "RelWithDebInfo")
 endif()
 
-if(BUILD_FUZZER)
+if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
   if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang|AppleClang")
     add_library(fuzzer_flags INTERFACE)
     target_compile_options(fuzzer_flags INTERFACE
@@ -144,7 +146,7 @@ target_compile_definitions(unarr
 check_ipo_supported(RESULT lto_supported OUTPUT lto_diagnostic LANGUAGES C)
 if(lto_supported)
   # Lto is discouraged for fuzzing
-  if(BUILD_FUZZER)
+  if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
     set_target_properties(unarr PROPERTIES INTERPROCEDURAL_OPTIMIZATION FALSE)
   else()
     set_target_properties(unarr PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
@@ -230,9 +232,8 @@ if(UNIX
             $<$<CONFIG:Release>:-fomit-frame-pointer>
             $<$<C_COMPILER_ID:Clang,AppleClang>:
             -Wno-missing-field-initializers>)
-  if(BUILD_FUZZER)
+  if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
     target_link_libraries(unarr PRIVATE fuzzer_flags)
-
     target_compile_definitions(
       unarr PRIVATE FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
   endif()
@@ -240,7 +241,7 @@ if(UNIX
   target_compile_definitions(unarr PRIVATE _FILE_OFFSET_BITS=64)
 
   # Linker flags
-  if(NOT BUILD_FUZZER)
+  if(NOT (PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER))
     if("${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
       target_link_options(unarr PRIVATE "-Wl,-undefined,error")
     else()
@@ -260,9 +261,10 @@ add_library(unarr::unarr ALIAS unarr)
 
 # Include tests
 
-if(BUILD_UNIT_TESTS
-   OR BUILD_INTEGRATION_TESTS
-   OR BUILD_FUZZER)
+if(PROJECT_IS_TOP_LEVEL
+    AND (BUILD_UNIT_TESTS
+    OR BUILD_INTEGRATION_TESTS
+    OR BUILD_FUZZER))
   enable_testing()
   add_subdirectory(test)
 endif()
