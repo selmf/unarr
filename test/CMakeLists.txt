@@ -17,7 +17,7 @@ endif()
 
 if(BUILD_INTEGRATION_TESTS)
   add_executable(unarr-test main.c)
-  target_link_libraries(unarr-test unarr)
+  target_link_libraries(unarr-test PRIVATE unarr)
 
   function(run_test file)
     add_test(NAME ${file} COMMAND unarr-test
@@ -26,7 +26,7 @@ if(BUILD_INTEGRATION_TESTS)
       ${file}
       PROPERTIES ENVIRONMENT
                  "PATH=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE};$ENV{PATH}")
-  endfunction(run_test file)
+  endfunction()
 
   # Rar
   run_test(integration/lipsum_rar4_store.rar)

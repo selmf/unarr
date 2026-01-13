@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22...4.2 FATAL_ERROR)
 
 project(
   unarr
@@ -9,7 +9,6 @@ set(PROJECT_DESCRIPTION "A decompression library for rar, tar and zip files.")
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(CheckIPOSupported)
-
 
 # Require out-of-source builds
 file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
@@ -33,14 +32,13 @@ option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library" ON)
 
 if(PROJECT_IS_TOP_LEVEL)
   option(BUILD_INTEGRATION_TESTS
-        "Build unarr-test executable and integration tests" OFF)
+         "Build unarr-test executable and integration tests" OFF)
   option(BUILD_FUZZER "Build libFuzzer coverage-guided fuzzer test" OFF)
   option(BUILD_UNIT_TESTS "Build unit tests (requires CMocka)" OFF)
 endif()
 
-# Set default build type to "Release" if empty
-# RelWithDebInfo for fuzzing
-if (PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
+# Set default build type to "Release" if empty, RelWithDebInfo for fuzzing
+if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
   set(default_build_type "RelWithDebInfo")
 else()
   set(default_build_type "Release")
@@ -54,20 +52,19 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
       CACHE STRING "Choose the type of build." FORCE)
   # Set the possible values of build type for cmake-gui
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-                                                "MinSizeRel" "RelWithDebInfo")
+                                               "MinSizeRel" "RelWithDebInfo")
 endif()
 
 if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
   if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang|AppleClang")
     add_library(fuzzer_flags INTERFACE)
-    target_compile_options(fuzzer_flags INTERFACE
-      -fno-omit-frame-pointer
-      -g
-      -O1
-      -fsanitize=fuzzer,address,undefined)
+    target_compile_options(
+      fuzzer_flags INTERFACE -fno-omit-frame-pointer -g -O1
+                             -fsanitize=fuzzer,address,undefined)
     target_link_options(fuzzer_flags INTERFACE
-      -fsanitize=fuzzer,address,undefined)
-    target_compile_definitions(fuzzer_flags INTERFACE FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
+                        -fsanitize=fuzzer,address,undefined)
+    target_compile_definitions(
+      fuzzer_flags INTERFACE FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
   else()
     message(FATAL_ERROR "Fuzzer build requires a Clang compiler")
   endif()
@@ -120,10 +117,9 @@ add_library(
   zip/uncompress-zip.c
   zip/zip.c)
 
-target_include_directories(unarr PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  $<INSTALL_INTERFACE:include>
-)
+target_include_directories(
+  unarr PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+               $<INSTALL_INTERFACE:include>)
 
 set_target_properties(
   unarr
@@ -136,14 +132,16 @@ set_target_properties(
              SOVERSION ${PROJECT_VERSION_MAJOR})
 
 target_compile_features(unarr PRIVATE c_std_99)
-target_compile_definitions(unarr
-  PRIVATE
-    UNARR_EXPORT_SYMBOLS
-  PUBLIC
-    $<$<BOOL:${BUILD_SHARED_LIBS}>:UNARR_IS_SHARED_LIBRARY>)
+target_compile_definitions(
+  unarr
+  PRIVATE UNARR_EXPORT_SYMBOLS
+  PUBLIC $<$<BOOL:${BUILD_SHARED_LIBS}>:UNARR_IS_SHARED_LIBRARY>)
 
 # Enable lto optimization if supported
-check_ipo_supported(RESULT lto_supported OUTPUT lto_diagnostic LANGUAGES C)
+check_ipo_supported(
+  RESULT lto_supported
+  OUTPUT lto_diagnostic
+  LANGUAGES C)
 if(lto_supported)
   # Lto is discouraged for fuzzing
   if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
@@ -234,8 +232,6 @@ if(UNIX
             -Wno-missing-field-initializers>)
   if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
     target_link_libraries(unarr PRIVATE fuzzer_flags)
-    target_compile_definitions(
-      unarr PRIVATE FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
   endif()
 
   target_compile_definitions(unarr PRIVATE _FILE_OFFSET_BITS=64)
@@ -262,9 +258,9 @@ add_library(unarr::unarr ALIAS unarr)
 # Include tests
 
 if(PROJECT_IS_TOP_LEVEL
-    AND (BUILD_UNIT_TESTS
-    OR BUILD_INTEGRATION_TESTS
-    OR BUILD_FUZZER))
+   AND (BUILD_UNIT_TESTS
+        OR BUILD_INTEGRATION_TESTS
+        OR BUILD_FUZZER))
   enable_testing()
   add_subdirectory(test)
 endif()
@@ -294,9 +290,8 @@ install(
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Install pkg-config file
-install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
 # Export and install targets
 install(
