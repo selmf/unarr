@@ -282,7 +282,7 @@ else()
 endif()
 
 # Write pkg-config file
-configure_file("pkg-config.pc.cmake" "lib${PROJECT_NAME}.pc" @ONLY)
+configure_file("pkg-config.pc.in" "lib${PROJECT_NAME}.pc" @ONLY)
 
 # Install library and header
 install(
@@ -295,7 +295,7 @@ install(
 
 # Install pkg-config file
 install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib${PROJECT_NAME}.pc
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
 # Export and install targets
