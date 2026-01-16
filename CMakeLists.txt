@@ -178,7 +178,6 @@ if(BZIP2_FOUND)
     endif()
     list(APPEND PROJECT_LIBS_PRIVATE "-lbz2")
   endif()
-  set(UNARR_DEPENDS_BZip2 "find_dependency(BZip2)")
 endif()
 
 if(USE_SYSTEM_LZMA)
@@ -188,7 +187,6 @@ if(LIBLZMA_FOUND)
   target_link_libraries(unarr PRIVATE LibLZMA::LibLZMA)
   target_compile_definitions(unarr PRIVATE HAVE_LIBLZMA)
   list(APPEND PROJECT_REQUIRES_PRIVATE "liblzma")
-  set(UNARR_DEPENDS_LibLZMA "find_dependency(LibLZMA)")
 else()
   target_sources(unarr PRIVATE lzmasdk/LzmaDec.h lzmasdk/LzmaDec.c)
 endif()
@@ -202,7 +200,6 @@ if(ZLIB_FOUND)
     unarr PRIVATE HAVE_ZLIB $<$<BOOL:${USE_ZLIB_CRC}>:USE_ZLIB_CRC>)
   # Add zlib to libunarr.pc Requires.private
   list(APPEND PROJECT_REQUIRES_PRIVATE "zlib")
-  set(UNARR_DEPENDS_ZLIB "find_dependency(ZLIB)")
 endif()
 
 if(ENABLE_7Z)
@@ -329,7 +326,8 @@ export(
 # Write a config file for installation
 configure_package_config_file(
   unarr-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/unarr-config.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/unarr)
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/unarr
+  NO_SET_AND_CHECK_MACRO NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
 # Write version file
 write_basic_package_version_file(unarr-version.cmake
