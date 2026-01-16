@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.22...4.2 FATAL_ERROR)
 project(
   unarr
   VERSION 1.2.0
+  DESCRIPTION "A decompression library for rar, tar, 7z and zip files."
   LANGUAGES C)
 set(PROJECT_DESCRIPTION "A decompression library for rar, tar and zip files.")
 
