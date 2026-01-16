@@ -159,8 +159,24 @@ endif()
 if(BZIP2_FOUND)
   target_link_libraries(unarr PRIVATE BZip2::BZip2)
   target_compile_definitions(unarr PRIVATE HAVE_BZIP2)
-  # Bzip2 upstream does not supply a .pc file. Add it to Libs.private.
-  set(PROJECT_LIBS_PRIVATE "-I${BZIP2_INCLUDE_DIRS} -l${BZIP2_LIBRARIES}")
+
+  find_package(PkgConfig)
+  if(PKG_CONFIG_FOUND)
+    pkg_check_modules(PC_BZIP2 QUIET bzip2)
+  endif()
+  # BZip2 upstream does not provide a .pc file, but many downstream packagers
+  # do. Prefer PkgConfig if available, otherwise fall back to manual detection.
+  if(PC_BZIP2_FOUND)
+    list(APPEND PROJECT_REQUIRES_PRIVATE "bzip2")
+  else()
+    # For .pc file generation: extract library path.
+    get_filename_component(BZIP2_LIB_DIR "${BZIP2_LIBRARIES}" DIRECTORY)
+    if(BZIP2_LIB_DIR AND NOT BZIP2_LIB_DIR STREQUAL
+                         "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+      list(APPEND PROJECT_LIBS_PRIVATE "-L${BZIP2_LIB_DIR}")
+    endif()
+    list(APPEND PROJECT_LIBS_PRIVATE "-lbz2")
+  endif()
   set(UNARR_DEPENDS_BZip2 "find_dependency(BZip2)")
 endif()
 
@@ -170,7 +186,7 @@ endif()
 if(LIBLZMA_FOUND)
   target_link_libraries(unarr PRIVATE LibLZMA::LibLZMA)
   target_compile_definitions(unarr PRIVATE HAVE_LIBLZMA)
-  set(PROJECT_REQUIRES_PRIVATE "${PROJECT_REQUIRES_PRIVATE} liblzma")
+  list(APPEND PROJECT_REQUIRES_PRIVATE "liblzma")
   set(UNARR_DEPENDS_LibLZMA "find_dependency(LibLZMA)")
 else()
   target_sources(unarr PRIVATE lzmasdk/LzmaDec.h lzmasdk/LzmaDec.c)
@@ -184,7 +200,7 @@ if(ZLIB_FOUND)
   target_compile_definitions(
     unarr PRIVATE HAVE_ZLIB $<$<BOOL:${USE_ZLIB_CRC}>:USE_ZLIB_CRC>)
   # Add zlib to libunarr.pc Requires.private
-  set(PROJECT_REQUIRES_PRIVATE "${PROJECT_REQUIRES_PRIVATE} zlib")
+  list(APPEND PROJECT_REQUIRES_PRIVATE "zlib")
   set(UNARR_DEPENDS_ZLIB "find_dependency(ZLIB)")
 endif()
 
@@ -278,6 +294,10 @@ else()
 endif()
 
 # Write pkg-config file
+list(JOIN PROJECT_REQUIRES_PRIVATE " " PROJECT_REQUIRES_PRIVATE)
+list(JOIN PROJECT_LIBS_PRIVATE " " PROJECT_LIBS_PRIVATE)
+string(STRIP "${PROJECT_REQUIRES_PRIVATE}" PROJECT_REQUIRES_PRIVATE)
+string(STRIP "${PROJECT_LIBS_PRIVATE}" PROJECT_LIBS_PRIVATE)
 configure_file("pkg-config.pc.in" "lib${PROJECT_NAME}.pc" @ONLY)
 
 # Install library and header

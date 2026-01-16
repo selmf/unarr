@@ -1,6 +1,13 @@
 # (lib)unarr changelog
 
 ## 1.2.0 (WIP)
+
+### Added
+* Semantic versioning defines for major, minor and patch version in unarr.h
+* UNARR_VERSION version string define
+* UNARR_VERSION_CHECK macro for version checks against UNARR_API_VERSION
+* Functions to query UNARR_VERSION and UNARR_API_VERSION at runtime
+
 ### Changed
 * Increase minimum CMake version to 3.22
 * Genereate UNARR_API_VERSION from semantic versioning constants
@@ -9,12 +16,11 @@
   version.
 * Improved build flags for fuzzer target
 
-### Added
-* Semantic versioning defines for major, minor and patch version in unarr.h
-* UNARR_VERSION version string define
-* UNARR_VERSION_CHECK macro for version checks against UNARR_API_VERSION
-* Functions to query UNARR_VERSION and UNARR_API_VERSION at runtime
-
+### Fixed
+* libunarr.pc pkg-config:
+  - Detect and use bzip2.pc if available
+  - Don't use "-I" flags in Libs.private
+  - Strip whitespace
 ## 1.1.1 (2023-10-23)
 
 ### Fixed
