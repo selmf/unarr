@@ -3,24 +3,31 @@
 ## 1.2.0 (WIP)
 
 ### Added
-* Semantic versioning defines for major, minor and patch version in unarr.h
-* UNARR_VERSION version string define
-* UNARR_VERSION_CHECK macro for version checks against UNARR_API_VERSION
-* Functions to query UNARR_VERSION and UNARR_API_VERSION at runtime
+* Versioning:
+  - Semantic versioning defines for major, minor and patch version in unarr.h
+  - UNARR_VERSION version string define
+  - UNARR_VERSION_CHECK macro for version checks against UNARR_API_VERSION
+  - Functions to query UNARR_VERSION and UNARR_API_VERSION at runtime
+* CMake:
+  - New unarr::unarr alias target for easier importing
 
 ### Changed
-* Increase minimum CMake version to 3.22
-* Genereate UNARR_API_VERSION from semantic versioning constants
-* Use a packed hexadecimal format for UNARR_API_VERSION, e.g.,
-  0xMMmmPP where MM indicates the major, mm the minor and PP the patch
-  version.
-* Improved build flags for fuzzer target
+* CMake:
+  - Increase minimum CMake version to 3.22
+  - Disable test and fuzzer build options if unarr is used as a CMake subproject
+  - Improved build flags for fuzzer target
+  - Disable C extensions (enforce pure C99)
+  - More modern CMake
+* Versioning:
+  - Genereate UNARR_API_VERSION from semantic versioning constants
+  - Use a packed hexadecimal format for UNARR_API_VERSION, e.g., 0xMMmmPP where MM indicates the major, mm the minor and PP the patch version.
 
 ### Fixed
 * libunarr.pc pkg-config:
   - Detect and use bzip2.pc if available
   - Don't use "-I" flags in Libs.private
   - Strip whitespace
+
 ## 1.1.1 (2023-10-23)
 
 ### Fixed
