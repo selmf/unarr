@@ -13,7 +13,7 @@
 
 ### Changed
 * CMake:
-  - Increase minimum CMake version to 3.22
+  - Increase minimum CMake version to 3.25
   - Disable test and fuzzer build options if unarr is used as a CMake subproject
   - Improved build flags for fuzzer target
   - Disable C extensions (enforce pure C99)

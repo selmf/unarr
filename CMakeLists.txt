@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22...4.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.25...4.2 FATAL_ERROR)
 
 project(
   unarr
