@@ -70,9 +70,6 @@ if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
   endif()
 endif()
 
-# Set version in header
-configure_file(unarr.h.in unarr.h @ONLY)
-
 # Build target
 add_library(
   unarr
@@ -117,14 +114,34 @@ add_library(
   zip/uncompress-zip.c
   zip/zip.c)
 
+# Set version in header
+configure_file(unarr.h.in unarr.h @ONLY)
+
+# For CMocka unit tests
+if(PROJECT_IS_TOP_LEVEL AND BUILD_UNIT_TESTS)
+  add_library(unarr_h INTERFACE)
+  target_include_directories(unarr_h INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
+endif()
+
+target_sources(
+  unarr
+  PUBLIC FILE_SET
+         unarr_header
+         TYPE
+         HEADERS
+         BASE_DIRS
+         ${CMAKE_CURRENT_BINARY_DIR}
+         FILES
+         ${CMAKE_CURRENT_BINARY_DIR}/unarr.h)
+
 target_include_directories(
   unarr PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                $<INSTALL_INTERFACE:include>)
+target_sources(unarr PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/unarr.h)
 
 set_target_properties(
   unarr
-  PROPERTIES PUBLIC_HEADER unarr.h
-             C_VISIBILITY_PRESET hidden
+  PROPERTIES C_VISIBILITY_PRESET hidden
              VISIBILITY_INLINES_HIDDEN ON
              C_EXTENSIONS OFF
              C_STANDARD_REQUIRED ON
@@ -304,7 +321,8 @@ install(
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+          FILE_SET unarr_header
+          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Install pkg-config file
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc

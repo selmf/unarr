@@ -17,6 +17,7 @@
   - Disable test and fuzzer build options if unarr is used as a CMake subproject
   - Improved build flags for fuzzer target
   - Disable C extensions (enforce pure C99)
+  - Use FILE_SET instead of PUBLIC_HEADER for header export
   - More modern CMake
 * Versioning:
   - Genereate UNARR_API_VERSION from semantic versioning constants
