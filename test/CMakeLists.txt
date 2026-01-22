@@ -20,12 +20,14 @@ if(BUILD_INTEGRATION_TESTS)
   target_link_libraries(unarr-test PRIVATE unarr)
 
   function(run_test file)
-    add_test(NAME ${file} COMMAND unarr-test
+    add_test(NAME "${file}" COMMAND unarr-test
                                   ${CMAKE_CURRENT_SOURCE_DIR}/corpus/${file})
-    set_tests_properties(
-      ${file}
-      PROPERTIES ENVIRONMENT
-                 "PATH=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE};$ENV{PATH}")
+    # Add unarr.dll location to path for Windows
+    if(WIN32)
+      set_tests_properties(
+        "${file}" PROPERTIES ENVIRONMENT_MODIFICATION
+                           "PATH=path_list_prepend:$<TARGET_FILE_DIR:unarr>")
+    endif()
   endfunction()
 
   # Rar
