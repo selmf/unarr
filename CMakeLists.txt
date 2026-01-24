@@ -1,21 +1,24 @@
-cmake_minimum_required(VERSION 3.3...4.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.25...4.2 FATAL_ERROR)
 
 project(
   unarr
-  VERSION 1.1.0
+  VERSION 1.2.0
+  DESCRIPTION "A decompression library for rar, tar, 7z and zip files."
   LANGUAGES C)
-set(PROJECT_DESCRIPTION "A decompression library for rar, tar and zip files.")
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+include(CheckIPOSupported)
 
-# Set build type to default if unset.
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE
-      "Release"
-      CACHE STRING "Choose the type of build." FORCE)
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-                                               "MinSizeRel" "RelWithDebInfo")
+# Require out-of-source builds
+file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
+if(EXISTS "${LOC_PATH}")
+  message(
+    FATAL_ERROR
+      "You cannot build in a source directory (or any \
+        directory with a CMakeLists.txt file). Please make a build subdirectory. \
+        Feel free to remove CMakeCache.txt and CMakeFiles.
+        ")
 endif()
 
 # Build options
@@ -27,14 +30,41 @@ option(USE_ZLIB_CRC "Use zlib crc32" OFF)
 
 option(BUILD_SHARED_LIBS "Build ${PROJECT_NAME} as a shared library" ON)
 
-option(BUILD_INTEGRATION_TESTS
-       "Build unarr-test executable and integration tests" OFF)
-option(BUILD_FUZZER "Build libFuzzer coverage-guided fuzzer test" OFF)
-option(BUILD_UNIT_TESTS "Build unit tests (requires CMocka)" OFF)
+if(PROJECT_IS_TOP_LEVEL)
+  option(BUILD_INTEGRATION_TESTS
+         "Build unarr-test executable and integration tests" OFF)
+  option(BUILD_FUZZER "Build libFuzzer coverage-guided fuzzer test" OFF)
+  option(BUILD_UNIT_TESTS "Build unit tests (requires CMocka)" OFF)
+endif()
 
-if(BUILD_FUZZER)
-  if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    set(sanitize_opts "-fsanitize=fuzzer,address,undefined")
+# Set default build type to "Release" if empty, RelWithDebInfo for fuzzing
+if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
+  set(default_build_type "RelWithDebInfo")
+else()
+  set(default_build_type "Release")
+endif()
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(
+    STATUS
+      "Setting build type to '${default_build_type}' as none was specified.")
+  set(CMAKE_BUILD_TYPE
+      "${default_build_type}"
+      CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
+                                               "MinSizeRel" "RelWithDebInfo")
+endif()
+
+if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
+  if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang|AppleClang")
+    add_library(fuzzer_flags INTERFACE)
+    target_compile_options(
+      fuzzer_flags INTERFACE -fno-omit-frame-pointer -g -O1
+                             -fsanitize=fuzzer,address,undefined)
+    target_link_options(fuzzer_flags INTERFACE
+                        -fsanitize=fuzzer,address,undefined)
+    target_compile_definitions(
+      fuzzer_flags INTERFACE FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
   else()
     message(FATAL_ERROR "Fuzzer build requires a Clang compiler")
   endif()
@@ -84,54 +114,95 @@ add_library(
   zip/uncompress-zip.c
   zip/zip.c)
 
+# Set version in header
+configure_file(unarr.h.in unarr.h @ONLY)
+
+# For CMocka unit tests
+if(PROJECT_IS_TOP_LEVEL AND BUILD_UNIT_TESTS)
+  add_library(unarr_h INTERFACE)
+  target_include_directories(unarr_h INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
+endif()
+
+target_sources(
+  unarr
+  PUBLIC FILE_SET
+         unarr_header
+         TYPE
+         HEADERS
+         BASE_DIRS
+         ${CMAKE_CURRENT_BINARY_DIR}
+         FILES
+         ${CMAKE_CURRENT_BINARY_DIR}/unarr.h)
+
+target_include_directories(
+  unarr PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+               $<INSTALL_INTERFACE:include>)
+target_sources(unarr PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/unarr.h)
+
 set_target_properties(
   unarr
-  PROPERTIES PUBLIC_HEADER unarr.h
-             C_VISIBILITY_PRESET hidden
-             C_STANDARD 99
+  PROPERTIES C_VISIBILITY_PRESET hidden
+             VISIBILITY_INLINES_HIDDEN ON
+             C_EXTENSIONS OFF
              C_STANDARD_REQUIRED ON
-             DEFINE_SYMBOL UNARR_EXPORT_SYMBOLS
              VERSION ${PROJECT_VERSION}
              SOVERSION ${PROJECT_VERSION_MAJOR})
 
-# Add include directories for build and install
-target_include_directories(
-  unarr PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-               $<INSTALL_INTERFACE:include>)
+target_compile_features(unarr PRIVATE c_std_99)
+target_compile_definitions(
+  unarr
+  PRIVATE UNARR_EXPORT_SYMBOLS
+  PUBLIC $<$<BOOL:${BUILD_SHARED_LIBS}>:UNARR_IS_SHARED_LIBRARY>)
 
-if(BUILD_SHARED_LIBS)
-  target_compile_definitions(unarr PUBLIC UNARR_IS_SHARED_LIBRARY)
+# Enable lto optimization if supported
+check_ipo_supported(
+  RESULT lto_supported
+  OUTPUT lto_diagnostic
+  LANGUAGES C)
+if(lto_supported)
+  # Lto is discouraged for fuzzing
+  if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
+    set_target_properties(unarr PROPERTIES INTERPROCEDURAL_OPTIMIZATION FALSE)
+  else()
+    set_target_properties(unarr PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+  endif()
+else()
+  message(WARNING "IPO is not supported: ${lto_diagnostic}")
 endif()
 
 if(USE_SYSTEM_BZ2)
   find_package(BZip2)
 endif()
 if(BZIP2_FOUND)
-  if(TARGET BZip2::BZip2)
-    target_link_libraries(unarr PRIVATE BZip2::BZip2)
-  else()
-    target_include_directories(unarr PRIVATE ${BZIP2_INCLUDE_DIRS})
-    target_link_libraries(unarr PRIVATE ${BZIP2_LIBRARIES})
+  target_link_libraries(unarr PRIVATE BZip2::BZip2)
+  target_compile_definitions(unarr PRIVATE HAVE_BZIP2)
+
+  find_package(PkgConfig)
+  if(PKG_CONFIG_FOUND)
+    pkg_check_modules(PC_BZIP2 QUIET bzip2)
   endif()
-  target_compile_definitions(unarr PRIVATE -DHAVE_BZIP2)
-  # Bzip2 upstream does not supply a .pc file. Add it to Libs.private.
-  set(PROJECT_LIBS_PRIVATE "-I${BZIP2_INCLUDE_DIRS} -l${BZIP2_LIBRARIES}")
-  set(UNARR_DEPENDS_BZip2 "find_dependency(BZip2)")
+  # BZip2 upstream does not provide a .pc file, but many downstream packagers
+  # do. Prefer PkgConfig if available, otherwise fall back to manual detection.
+  if(PC_BZIP2_FOUND)
+    list(APPEND PROJECT_REQUIRES_PRIVATE "bzip2")
+  else()
+    # For .pc file generation: extract library path.
+    get_filename_component(BZIP2_LIB_DIR "${BZIP2_LIBRARIES}" DIRECTORY)
+    if(BZIP2_LIB_DIR AND NOT BZIP2_LIB_DIR STREQUAL
+                         "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+      list(APPEND PROJECT_LIBS_PRIVATE "-L${BZIP2_LIB_DIR}")
+    endif()
+    list(APPEND PROJECT_LIBS_PRIVATE "-lbz2")
+  endif()
 endif()
 
 if(USE_SYSTEM_LZMA)
   find_package(LibLZMA)
 endif()
 if(LIBLZMA_FOUND)
-  if(TARGET LibLZMA::LibLZMA)
-    target_link_libraries(unarr PRIVATE LibLZMA::LibLZMA)
-  else()
-    target_include_directories(unarr PRIVATE ${LIBLZMA_INCLUDE_DIRS})
-    target_link_libraries(unarr PRIVATE ${LIBLZMA_LIBRARIES})
-  endif()
-  target_compile_definitions(unarr PRIVATE -DHAVE_LIBLZMA)
-  set(PROJECT_REQUIRES_PRIVATE "${PROJECT_REQUIRES_PRIVATE} liblzma")
-  set(UNARR_DEPENDS_LibLZMA "find_dependency(LibLZMA)")
+  target_link_libraries(unarr PRIVATE LibLZMA::LibLZMA)
+  target_compile_definitions(unarr PRIVATE HAVE_LIBLZMA)
+  list(APPEND PROJECT_REQUIRES_PRIVATE "liblzma")
 else()
   target_sources(unarr PRIVATE lzmasdk/LzmaDec.h lzmasdk/LzmaDec.c)
 endif()
@@ -140,17 +211,11 @@ if(USE_SYSTEM_ZLIB)
   find_package(ZLIB)
 endif()
 if(ZLIB_FOUND)
-  if(TARGET ZLIB::ZLIB)
-    target_link_libraries(unarr PRIVATE ZLIB::ZLIB)
-  else()
-    target_include_directories(unarr PRIVATE ${ZLIB_INCLUDE_DIRS})
-    target_link_libraries(unarr PRIVATE ${ZLIB_LIBRARIES})
-  endif()
+  target_link_libraries(unarr PRIVATE ZLIB::ZLIB)
   target_compile_definitions(
     unarr PRIVATE HAVE_ZLIB $<$<BOOL:${USE_ZLIB_CRC}>:USE_ZLIB_CRC>)
   # Add zlib to libunarr.pc Requires.private
-  set(PROJECT_REQUIRES_PRIVATE "${PROJECT_REQUIRES_PRIVATE} zlib")
-  set(UNARR_DEPENDS_ZLIB "find_dependency(ZLIB)")
+  list(APPEND PROJECT_REQUIRES_PRIVATE "zlib")
 endif()
 
 if(ENABLE_7Z)
@@ -176,7 +241,7 @@ if(ENABLE_7Z)
   if(LIBLZMA_FOUND) # TODO: Replace 7z lzma with system lzma
     target_sources(unarr PRIVATE lzmasdk/LzmaDec.h lzmasdk/LzmaDec.c)
   endif()
-  target_compile_definitions(unarr PRIVATE -DHAVE_7Z -DZ7_PPMD_SUPPORT)
+  target_compile_definitions(unarr PRIVATE HAVE_7Z Z7_PPMD_SUPPORT)
 endif()
 
 # Compiler specific settings
@@ -194,34 +259,22 @@ if(UNIX
             -Werror-implicit-function-declaration
             $<$<CONFIG:Release>:-fomit-frame-pointer>
             $<$<C_COMPILER_ID:Clang,AppleClang>:
-            -Wno-missing-field-initializers>
-            -flto)
-  if(BUILD_FUZZER)
-    target_compile_options(unarr PUBLIC "${sanitize_opts}")
-    target_compile_definitions(
-      unarr PRIVATE -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
+            -Wno-missing-field-initializers>)
+  if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
+    target_link_libraries(unarr PRIVATE fuzzer_flags)
   endif()
 
-  target_compile_definitions(unarr PRIVATE -D_FILE_OFFSET_BITS=64)
+  target_compile_definitions(unarr PRIVATE _FILE_OFFSET_BITS=64)
 
   # Linker flags
-
-  if(BUILD_FUZZER)
-    set(linker_opts "${sanitize_opts}")
-  else()
+  if(NOT (PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER))
     if("${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
-      set(linker_opts "-Wl,-undefined,error")
+      target_link_options(unarr PRIVATE "-Wl,-undefined,error")
     else()
-      set(linker_opts "-Wl,--as-needed -Wl,--no-undefined")
+      target_link_options(unarr PRIVATE "-Wl,--as-needed" "-Wl,--no-undefined")
     endif()
   endif()
 
-  # Clang linker needs -flto too when doing lto
-  if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
-    set(linker_opts "${linker_opts} -flto")
-  endif()
-
-  set_target_properties(unarr PROPERTIES LINK_FLAGS "${linker_opts}")
 endif()
 
 if(MSVC)
@@ -229,11 +282,15 @@ if(MSVC)
   target_compile_definitions(unarr PRIVATE _CRT_SECURE_NO_WARNINGS)
 endif()
 
+# Alias target for unarr::unarr
+add_library(unarr::unarr ALIAS unarr)
+
 # Include tests
 
-if(BUILD_UNIT_TESTS
-   OR BUILD_INTEGRATION_TESTS
-   OR BUILD_FUZZER)
+if(PROJECT_IS_TOP_LEVEL
+   AND (BUILD_UNIT_TESTS
+        OR BUILD_INTEGRATION_TESTS
+        OR BUILD_FUZZER))
   enable_testing()
   add_subdirectory(test)
 endif()
@@ -251,7 +308,11 @@ else()
 endif()
 
 # Write pkg-config file
-configure_file("pkg-config.pc.cmake" "lib${PROJECT_NAME}.pc" @ONLY)
+list(JOIN PROJECT_REQUIRES_PRIVATE " " PROJECT_REQUIRES_PRIVATE)
+list(JOIN PROJECT_LIBS_PRIVATE " " PROJECT_LIBS_PRIVATE)
+string(STRIP "${PROJECT_REQUIRES_PRIVATE}" PROJECT_REQUIRES_PRIVATE)
+string(STRIP "${PROJECT_LIBS_PRIVATE}" PROJECT_LIBS_PRIVATE)
+configure_file("pkg-config.pc.in" "lib${PROJECT_NAME}.pc" @ONLY)
 
 # Install library and header
 install(
@@ -260,12 +321,12 @@ install(
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+          FILE_SET unarr_header
+          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Install pkg-config file
-install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib${PROJECT_NAME}.pc
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
 # Export and install targets
 install(
@@ -282,7 +343,8 @@ export(
 # Write a config file for installation
 configure_package_config_file(
   unarr-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/unarr-config.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/unarr)
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/unarr
+  NO_SET_AND_CHECK_MACRO NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
 # Write version file
 write_basic_package_version_file(unarr-version.cmake

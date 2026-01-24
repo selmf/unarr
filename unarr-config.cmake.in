@@ -2,9 +2,21 @@
 
 include(CMakeFindDependencyMacro)
 
-@UNARR_DEPENDS_BZip2@
-@UNARR_DEPENDS_LibLZMA@
-@UNARR_DEPENDS_ZLIB@
+set(UNARR_DEPENDS_BZip2 @BZIP2_FOUND@)
+set(UNARR_DEPENDS_LibLZMA @LIBLZMA_FOUND@)
+set(UNARR_DEPENDS_ZLIB @ZLIB_FOUND@)
+
+if(UNARR_DEPENDS_BZip2)
+  find_dependency(BZip2)
+endif()
+
+if(UNARR_DEPENDS_LibLZMA)
+  find_dependency(LibLZMA)
+endif()
+
+if(UNARR_DEPENDS_ZLIB)
+  find_dependency(ZLIB)
+endif()
 
 if (NOT TARGET unarr::unarr)
   include("${CMAKE_CURRENT_LIST_DIR}/unarr-targets.cmake")

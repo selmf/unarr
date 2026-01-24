@@ -5,8 +5,7 @@ ProcessorCount(N)
 
 if(BUILD_FUZZER)
   add_executable(fuzzer fuzzer.c)
-  set_target_properties(fuzzer PROPERTIES LINK_FLAGS "${sanitize_opts}")
-  target_link_libraries(fuzzer unarr)
+  target_link_libraries(fuzzer PRIVATE unarr fuzzer_flags)
 
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/corpus)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/corpus/fuzzed)
@@ -18,16 +17,18 @@ endif()
 
 if(BUILD_INTEGRATION_TESTS)
   add_executable(unarr-test main.c)
-  target_link_libraries(unarr-test unarr)
+  target_link_libraries(unarr-test PRIVATE unarr)
 
   function(run_test file)
-    add_test(NAME ${file} COMMAND unarr-test
+    add_test(NAME "${file}" COMMAND unarr-test
                                   ${CMAKE_CURRENT_SOURCE_DIR}/corpus/${file})
-    set_tests_properties(
-      ${file}
-      PROPERTIES ENVIRONMENT
-                 "PATH=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE};$ENV{PATH}")
-  endfunction(run_test file)
+    # Add unarr.dll location to path for Windows
+    if(WIN32)
+      set_tests_properties(
+        "${file}" PROPERTIES ENVIRONMENT_MODIFICATION
+                           "PATH=path_list_prepend:$<TARGET_FILE_DIR:unarr>")
+    endif()
+  endfunction()
 
   # Rar
   run_test(integration/lipsum_rar4_store.rar)
@@ -72,10 +73,10 @@ if(BUILD_UNIT_TESTS)
   find_package(cmocka CONFIG REQUIRED)
   add_executable(crc32-test crc32-test.c)
   if(TARGET cmocka::cmocka)
-    target_link_libraries(crc32-test PRIVATE cmocka::cmocka)
+    target_link_libraries(crc32-test PRIVATE cmocka::cmocka unarr_h)
   else()
     target_include_directories(crc32-test PRIVATE ${CMOCKA_INCLUDE_DIR})
-    target_link_libraries(crc32-test PRIVATE ${CMOCKA_LIBRARY})
+    target_link_libraries(crc32-test PRIVATE ${CMOCKA_LIBRARY} unarr_h)
   endif()
   add_test(crc32 crc32-test)
 endif()
