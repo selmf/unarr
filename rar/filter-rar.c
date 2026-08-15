@@ -663,6 +663,11 @@ bool rar_run_filters(ar_archive_rar *rar)
 
     struct RARFilter *filter = filters->stack;
 
+    if (filter->blocklength > RARProgramMemorySize)
+    {
+        warn("Filter block length exceeds max format size");
+        return false;
+    }
 
     lzss_copy_bytes_from_window(&rar->uncomp.lzss, filters->vm->memory, start, filter->blocklength);
     if (!rar_execute_filter(filter, filters->vm, rar->progress.bytes_done)) {
