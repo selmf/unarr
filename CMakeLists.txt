@@ -225,6 +225,7 @@ if(ENABLE_7Z)
             lzmasdk/7zArcIn.c
             lzmasdk/7zBuf.h
             lzmasdk/7zBuf.c
+            lzmasdk/7zCrc.h
             lzmasdk/7zDec.c
             lzmasdk/7zStream.c
             lzmasdk/7zWindows.h
@@ -233,9 +234,9 @@ if(ENABLE_7Z)
             lzmasdk/Bra.c
             lzmasdk/Bra.h
             lzmasdk/Bra86.c
-            lzmasdk/7zCrc.h
             lzmasdk/Delta.h
             lzmasdk/Delta.c
+            lzmasdk/RotateDefs.h
             lzmasdk/Lzma2Dec.h
             lzmasdk/Lzma2Dec.c)
   if(LIBLZMA_FOUND) # TODO: Replace 7z lzma with system lzma

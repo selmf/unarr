@@ -22,6 +22,7 @@
 * Versioning:
   - Genereate UNARR_API_VERSION from semantic versioning constants
   - Use a packed hexadecimal format for UNARR_API_VERSION, e.g., 0xMMmmPP where MM indicates the major, mm the minor and PP the patch version.
+* LZMA SDK: Update to v26.03
 
 ### Fixed
 * libunarr.pc pkg-config:
@@ -100,3 +101,4 @@ ZIP archives.
 
 ### Fixed
 * Various small bugfixes related to compiler warnings
+
