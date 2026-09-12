@@ -271,6 +271,8 @@ if(UNIX
   if(NOT (PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER))
     if("${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
       target_link_options(unarr PRIVATE "-Wl,-undefined,error")
+    elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "OpenBSD")
+      target_link_options(unarr PRIVATE "-Wl,--as-needed")
     else()
       target_link_options(unarr PRIVATE "-Wl,--as-needed" "-Wl,--no-undefined")
     endif()
