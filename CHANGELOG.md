@@ -32,6 +32,11 @@
   - Don't use "-I" flags in Libs.private
   - Strip whitespace
 
+### Security
+* RAR:
+  - Fix OOB read in rar_conv_unicode_to_utf8 (CVE-TBD, [GHSA-](https://github.com/advisories/GHSA-3pwm-h93f-p4qh) - discovered by
+@TristanInSec)
+
 ## 1.1.1 (2023-10-23)
 
 ### Fixed
