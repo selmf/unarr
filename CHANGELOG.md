@@ -32,6 +32,11 @@
   - Don't use "-I" flags in Libs.private
   - Strip whitespace
 
+### Security
+* zip:
+  - Fix off-by-3 heap out-of-bounds read in ZIP64 extra field parser ([cve-2026-111274](https://nvd.nist.gov/vuln/detail/cve-2026-111274), first reported by @TristanInSec in [GHSA-qm4g-jf39-jwjj](https://github.com/selmf/unarr/security/advisories/GHSA-qm4g-jf39-jwjj))
+
+
 ## 1.1.1 (2023-10-23)
 
 ### Fixed
