@@ -22,7 +22,7 @@
 * Versioning:
   - Genereate UNARR_API_VERSION from semantic versioning constants
   - Use a packed hexadecimal format for UNARR_API_VERSION, e.g., 0xMMmmPP where MM indicates the major, mm the minor and PP the patch version.
-* LZMA SDK: Update to v26.03
+* LZMA SDK: Update to v26.05
 * Rar:
   - Fix stale filter pointer after filter reset in rar_run_filters
 
