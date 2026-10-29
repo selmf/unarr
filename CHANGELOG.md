@@ -22,7 +22,7 @@
 * Versioning:
   - Genereate UNARR_API_VERSION from semantic versioning constants
   - Use a packed hexadecimal format for UNARR_API_VERSION, e.g., 0xMMmmPP where MM indicates the major, mm the minor and PP the patch version.
-* LZMA SDK: Update to v26.05
+* LZMA SDK: Update to v26.03
 * Rar:
   - Fix stale filter pointer after filter reset in rar_run_filters
 
@@ -33,8 +33,11 @@
   - Strip whitespace
 
 ### Security
+* rar:
+  - Fix OOB read in rar_conv_unicode_to_utf8 (CVE-TBD, [GHSA-3pwm-h93f-p4qh](https://github.com/advisories/GHSA-3pwm-h93f-p4qh) - reported by
+Tristan Madani (@TristanInSec))
 * zip:
-  - Fix off-by-3 heap out-of-bounds read in ZIP64 extra field parser ([cve-2026-111274](https://nvd.nist.gov/vuln/detail/cve-2026-111274), first reported by @TristanInSec in [GHSA-qm4g-jf39-jwjj](https://github.com/selmf/unarr/security/advisories/GHSA-qm4g-jf39-jwjj))
+  - Fix off-by-3 heap out-of-bounds read in ZIP64 extra field parser ([cve-2026-111274](https://nvd.nist.gov/vuln/detail/cve-2026-111274), first reported by Tristan Madani (@TristanInSec) in [GHSA-qm4g-jf39-jwjj](https://github.com/advisories/GHSA-qm4g-jf39-jwjj))
 
 
 ## 1.1.1 (2023-10-23)
