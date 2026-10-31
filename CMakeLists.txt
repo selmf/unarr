@@ -260,7 +260,9 @@ if(UNIX
             -Werror-implicit-function-declaration
             $<$<CONFIG:Release>:-fomit-frame-pointer>
             $<$<C_COMPILER_ID:Clang,AppleClang>:
-            -Wno-missing-field-initializers>)
+            -Wno-missing-field-initializers>
+            -ffile-prefix-map=${PROJECT_SOURCE_DIR}=unarr
+            )
   if(PROJECT_IS_TOP_LEVEL AND BUILD_FUZZER)
     target_link_libraries(unarr PRIVATE fuzzer_flags)
   endif()

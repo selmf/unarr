@@ -33,6 +33,7 @@
   - Strip whitespace
 * build:
   - Don't use "--no-undefined" compiler flag in OpenBSD
+  - Remove srcdir references
 
 ### Security
 * rar:
