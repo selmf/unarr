@@ -36,6 +36,7 @@
 * rar:
   - Fix OOB read in rar_conv_unicode_to_utf8 (CVE-TBD, [GHSA-3pwm-h93f-p4qh](https://github.com/advisories/GHSA-3pwm-h93f-p4qh) - reported by
 Tristan Madani (@TristanInSec))
+  - Prevent heap overflow when copying filters into RAR VM (CVE-TBD, [GHSA-r5fr-9636-6xpp](https://github.com/selmf/unarr/security/advisories/GHSA-r5fr-9636-6xpp) Identified during investigation of [#32](https://github.com/selmf/unarr/issues/32) Thanks to @Nero22k for reporting and providing the PoC.)
 * zip:
   - Fix off-by-3 heap out-of-bounds read in ZIP64 extra field parser ([cve-2026-111274](https://nvd.nist.gov/vuln/detail/cve-2026-111274), first reported by Tristan Madani (@TristanInSec) in [GHSA-qm4g-jf39-jwjj](https://github.com/advisories/GHSA-qm4g-jf39-jwjj))
 
