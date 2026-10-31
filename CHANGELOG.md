@@ -1,6 +1,6 @@
 # (lib)unarr changelog
 
-## 1.2.0 (WIP)
+## 1.2.0 (2026-10-31)
 
 ### Added
 * Versioning:
@@ -22,15 +22,17 @@
 * Versioning:
   - Genereate UNARR_API_VERSION from semantic versioning constants
   - Use a packed hexadecimal format for UNARR_API_VERSION, e.g., 0xMMmmPP where MM indicates the major, mm the minor and PP the patch version.
-* LZMA SDK: Update to v26.03
-* Rar:
-  - Fix stale filter pointer after filter reset in rar_run_filters
+* LZMA SDK: Update to v26.05
 
 ### Fixed
+* Rar:
+  - Fix stale filter pointer after filter reset in rar_run_filters
 * libunarr.pc pkg-config:
   - Detect and use bzip2.pc if available
   - Don't use "-I" flags in Libs.private
   - Strip whitespace
+* build:
+  - Don't use "--no-undefined" compiler flag in OpenBSD
 
 ### Security
 * rar:
