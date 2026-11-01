@@ -58,7 +58,7 @@ typedef int64_t time64_t;
     }
 */
 #define UNARR_API_VERSION_CHECK(major, minor, patch) \
-    (((uint32_t)(major) << 16) | ((uint32_t)(minor) << 8) | ((uint32_t)(patch)))
+    ((major << 16) | (minor << 8) | patch)
 
 /* Packed hexadecimal API version */
 #define UNARR_API_VERSION UNARR_API_VERSION_CHECK(UNARR_VERSION_MAJOR, \
