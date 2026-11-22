@@ -1,10 +1,11 @@
 # (lib)unarr changelog
 
-## 1.2.1 (WIP)
+## 1.2.1 (2026-11-22)
 
 ### Added
 * Versioning:
   - Add unit tests for API version macros and version accessors
+
 ### Fixed
 * Versioning:
   - Remove integer casts from API macros to restore compatibility with preprocessor comparisons
